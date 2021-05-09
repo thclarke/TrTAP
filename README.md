@@ -8,7 +8,8 @@ to remove any poorly supported transcripts; and then to annotate the remaining t
 The current setup here is designed for Aranchnids but blast databases from other phyla canbe substituted in.
 
 
-[Image of Flowchart](./Summerized_TrTAP_Flowchart.png)
+![Image of Flowchart](./Summerized_TrTAP_Flowchart.png)
+
 ## Required 
 ### Programs
  - NCBI Blast (blastx, blastp, and blastn)
