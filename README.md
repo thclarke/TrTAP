@@ -1,11 +1,8 @@
 # TrTAP README and Installation
 ## Introduction
-Transcriptome Trimming and Annotation Pipeline is a series of perl scripts designed to
-work with several standard bioinformatic tools to successfully classify the transcripts
-within a de novo transcriptome to select the most supported isoforms and alleles and
-to remove any poorly supported transcripts; and then to annotate the remaining transcripts.
+Transcriptome Trimming and Annotation Pipeline is a series of perl scripts designed to work with several standard bioinformatic tools to successfully classify the transcripts within a de novo transcriptome to select the most supported isoforms and alleles and to remove any poorly supported transcripts; and then to annotate the remaining transcripts.
 
-The current setup here is designed for Aranchnids but blast databases from other phyla canbe substituted in.
+The current setup here is designed for Aranchnids but blast databases from other phyla can be substituted in.
 
 
 ![Image of Flowchart](./Summerized_TrTAP_Flowchart.png)
