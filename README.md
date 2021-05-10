@@ -18,21 +18,20 @@ The current setup here is designed for Aranchnids but blast databases from other
  
 ### Data
  -  Read Files
- -  Trinity
+ -  Trinity Assembly
  	- *Trinity files can be generated from the read files*
  -  Blast Databases
-    - The below databases are included in the github repository 
+    - The below databases are included in the github repository. It is pos
  
  | Name | Description |  
  | ---- | ----------- |
  | SpidTerm | Terminal region of Spidroins from Argiope |
- | Spidroin | Spidroin sequences from  |
  | Fly | Drosophila proteins from Flybase |
  | Ixo | Tick proteins from Tick Genome |
  | Smim | Stegodyphus mimulus proteins |
- | Ptep | Parasteadota tep. proteins |
- | Avent | Araneus ventricula proteins |
- | Neph | Nephila clapedes proteins |
+ | Ptep | Parasteadota tepidariorum proteins |
+ | Avent | Araneus ventricosus proteins |
+ | Neph | Nephila clavipes proteins |
  | SILVA_132.AllrRNA.fasta | SILVA Arthropod 18S rRNA file |
  
  - ranking file
@@ -41,7 +40,7 @@ The current setup here is designed for Aranchnids but blast databases from other
 
 ## Usage
 
-These scripts take a Trinity Assembly and through the scripts it trims the
+These scripts take a Trinity Assembly and through the scripts it trims the assembly to identify high confidence proteins and to annotate these.
 
 The following is a description of running the pipeline in TrTAP_SCRIPT_DIR on TRINITY_ASSEMBLY created from the read files in READ_DIR that end in READ_END. The blast databases are found in BLAST_DB. The files are written in RESULT_DIR with the header of GENOME_ID.
 ```
@@ -54,7 +53,7 @@ perl run_pipeline_final.pl -b BLAST_DIR -r RESULT_DIR -g GENOME_ID_NEW -i GENOME
 
 ### Initialization
 
-TrTAP uses a config file **trtap.ini** to set up the locations of the programs and set them in the PATH environmental variables for the slurm commands. Below is listed all the variables
+TrTAP uses a config file **trtap.ini** to set up the locations of the programs and set them in the PATH environmental variables for the slurm commands. Below is listed all the variables defined in the config file:
 
  | Name | Description | Variable | 
  | ---- | ----------- |----------|
@@ -94,7 +93,7 @@ Submits blast runs to SLURM job submissions
 ```
 
 ### run_pipeline.trimOnly.pl
-Once the SLURM runs from run_blast_submit.pl are finished, the "best" contig of the Trinity assembly is selected using the blast results, using the ranked databases from the ranking.txt file. Additionally when available, Chimeric and RNA sequences are removed from the intermediate results. The intermediate peptide, coding, and nucleotide files as well as an information table is returned with the ID addition of _INT_TRIM added to the genome id
+Once the SLURM runs from run_blast_submit.pl are finished, the "best" contig of the Trinity assembly is selected using the blast results, using the ranked databases from the ranking.txt file. Additionally when available, Chimeric and RNA sequences are removed from the intermediate results. The intermediate peptide, coding, and nucleotide files as well as an information table is returned with the ID addition of _INT_TRIM added to the genome id.
 ```
 Runs Annotation and Translation on a Trinity Sample
 
@@ -128,7 +127,7 @@ Runs Annotation and Translation on a Trimmed Sample
 
 
 ### run_pipeline_final.pl
-Run after all the comparisons begun by the above script finishes, this finalizes the annotation by using the intermediate results in addition to the blasts to assign final categories to the transcripts. Additional annotation information including GO and GO Slim terms and expression values are also added to the final table. It can also create the rsem and bowtie matrices as needed. 
+Run after all the comparisons begun by the above script finishes, this finalizes the annotation by using the intermediate results in addition to the blasts to assign final categories to the transcripts. Additional annotation information including GO and GO Slim terms and expression values are also added to the final table. It can also create the rsem and bowtie matrices as needed to perform the final annotations.
 ```
 Runs Post-Redundancy Removal Trimming and Annotation on a Trinity Sample
 
