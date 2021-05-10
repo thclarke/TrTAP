@@ -33,7 +33,7 @@ The current setup here is designed for Aranchnids but blast databases from other
  | Ptep | Parasteadota tep. proteins |
  | Avent | Araneus ventricula proteins |
  | Neph | Nephila clapedes proteins |
- | *SILVA_132.AllrRNA.fasta* | *Silva 18S rRNA file* |
+ | SILVA_132.AllrRNA.fasta | SILVA Arthropod 18S rRNA file |
  
  - ranking file
    - *contains the ranking of how TrTAP scripts treat the blast results from the databases above*
