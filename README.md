@@ -21,7 +21,7 @@ The current setup here is designed for Aranchnids but blast databases from other
  -  Trinity Assembly
  	- *Trinity files can be generated from the read files*
  -  Blast Databases
-    - The below databases are included in the github repository. It is pos
+    - The below databases are included in the github repository. It is possible to add additional databases. They should be placed in the same directory and the id placed in the ranking file.
  
  | Name | Description |  
  | ---- | ----------- |
