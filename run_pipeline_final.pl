@@ -32,7 +32,8 @@ if ($help || !$blast)
 }
 
 
-my $config_file = dirname($ARGV[0]) . "/trtap.ini";
+print STDERR "--", $0, "\n";
+my $config_file = dirname($0) . "/trtap.ini";
 my $config_hash ;
 open(my $conf_file, "<", $config_file);
 while (<$conf_file>) { chomp; # no newline 
@@ -441,9 +442,9 @@ foreach my $a (keys(%list))
 	}
 }
 my $out_id = $genome_id;
-if ($out_id =~ /INT/) { $out_id =~ s/INT/FIN/; } else { $out_it .= "_FIN"; }
+if ($out_id =~ /INT/) { $out_id =~ s/INT/FIN/; } else { $out_id .= "_FIN"; }
 
-open(my $fo, ">", $out . "/" . $out_id . ".gene_info.out");
+open(my $fo, ">", $out_dir . "/" . $out_id . ".gene_info.out");
 my %tot;
 my %type;
 my %uni;
