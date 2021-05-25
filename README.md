@@ -10,13 +10,13 @@ The current setup here is designed for Aranchnids but blast databases from other
 ## Required 
 ### Programs
  - NCBI Blast (blastx, blastp, and blastn)
-   -  Latest Blast+ executables can be downloaded: https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/
+   -  Latest Blast+ executables can be downloaded: https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/ with SwissProt at http://ftp.ebi.ac.uk/pub/databases/uniprot/current_release/knowledgebase/complete/uniprot_sprot.fasta.gz
  - Bowtie and Bowtie2
    - Bowtie: https://sourceforge.net/projects/bowtie-bio/files/bowtie/1.3.0/and Bowtie2: https://sourceforge.net/projects/bowtie-bio/files/bowtie2/2.4.4/
  - RSEM
    - RSEM is maintained at https://deweylab.github.io/RSEM/
  - HMMer
-    - HMMer is maintained at http://hmmer.org/download.html
+    - HMMer is maintained at http://hmmer.org/download.html with PFAM-A.hmm at http://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/
  - BUSCO
     - Latest version: https://gitlab.com/ezlab/busco/-/releases#5.1.2 with the Arthropod data: https://busco-data.ezlab.org/v4/data/lineages/arthropoda_odb10.2020-09-10.tar.gz
  - tRNAScan
