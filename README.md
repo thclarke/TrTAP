@@ -12,7 +12,7 @@ The current setup here is designed for Aranchnids but blast databases from other
  - NCBI Blast (blastx, blastp, and blastn)
    -  Latest Blast+ executables can be downloaded: https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/ with SwissProt at http://ftp.ebi.ac.uk/pub/databases/uniprot/current_release/knowledgebase/complete/uniprot_sprot.fasta.gz
  - Bowtie and Bowtie2
-   - Bowtie: https://sourceforge.net/projects/bowtie-bio/files/bowtie/1.3.0/and Bowtie2: https://sourceforge.net/projects/bowtie-bio/files/bowtie2/2.4.4/
+   - Bowtie: https://sourceforge.net/projects/bowtie-bio/files/bowtie/1.3.0/ and Bowtie2: https://sourceforge.net/projects/bowtie-bio/files/bowtie2/2.4.4/
  - RSEM
    - RSEM is maintained at https://deweylab.github.io/RSEM/
  - HMMer
