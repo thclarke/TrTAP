@@ -21,6 +21,8 @@ The current setup here is designed for Aranchnids but blast databases from other
     - Latest version: https://gitlab.com/ezlab/busco/-/releases#5.1.2 with the Arthropod data: https://busco-data.ezlab.org/v4/data/lineages/arthropoda_odb10.2020-09-10.tar.gz
  - tRNAScan
     - download link at http://trna.ucsc.edu/software/trnascan-se-2.0.8.tar.gz
+ - BioPerl
+    - TrTAP uses BioPerl (https://bioperl.org/) for sequence translation and for reading in any species phylogenies found in the database ranking file.
  
 ### Data
  -  Read Files
@@ -42,6 +44,7 @@ The current setup here is designed for Aranchnids but blast databases from other
  
  - ranking file
    - *contains the ranking of how TrTAP scripts treat the blast results from the databases above*
+   - It is possible to include a species phylogeny in a line to permit dynamic ranking (trigged by -c in the run_pipeline.trimOnly.pl script)
    - This is also included in the github repository with the above 
 
 ## Usage
