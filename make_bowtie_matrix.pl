@@ -19,7 +19,7 @@ if ($help || !($dir))
     die();
 }
 
-my $config_file = dirname($ARGV[0]) . "/trtap.ini";
+my $config_file = dirname($0) . "/trtap.ini";
 if (!-e $config_file){
 	print STDERR "Cannot locate config file at $config_file... Exiting...\n\n"; 
 	quit(-1);

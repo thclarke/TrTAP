@@ -123,6 +123,9 @@ touch RAND_NR.finished
 
 my $in_chim = $st . 
 $config_hash->{blast} 
+."
+".
+$config_hash->{python2};
 . "
 
 cd DIR
@@ -136,7 +139,7 @@ rm RAND_CHIMERA.NUM.start
 if [  -e OUT1 ]
 then
 	touch RAND_CHIMERA_PY.start
-	python CURRDIR/src/AnalyzeMultiHits.py -csvIn OUT1 -txtOut OUT2 -overlap 40
+	python2 CURRDIR/src/AnalyzeMultiHits.py -csvIn OUT1 -txtOut OUT2 -overlap 40
 	rm RAND_CHIMERA_PY.start
 	touch RAND_CHIMERA_PY.finished
 fi
