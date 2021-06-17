@@ -125,7 +125,7 @@ my $in_chim = $st .
 $config_hash->{blast} 
 ."
 ".
-$config_hash->{python2};
+$config_hash->{python2}
 . "
 
 cd DIR
@@ -150,7 +150,7 @@ touch CHIMERA.NUM.finished
 
 my $in_rrna = $st . $config_hash->{blast} 
 . "
-". $contig_hash->{rrna} .
+". $config_hash->{rrna} .
 "
 cd DIR
 if [  -e RAND_RRNA.sub ]
