@@ -198,7 +198,7 @@ if ($chim)
 		my $file1= $blast . "/" . $id; $new =~ s/DB1/$file1/g; $new =~ s/RAND/$random/g;  my $jobname = "CHIMERA-$random-RUN";
 		if ($type eq "p") { $new =~ s/BLAST/blastx/; $b_type = "blastx"; }
 		if ($type eq "n") { $new =~ s/BLAST/tblastx/; $b_type = "tblastx";}
-		my $abs = abs_path($0);
+		my $abs = dirname($0);
 		$new =~ s/CURRDIR/$abs/g;
 		$new =~ s/DIR/$out_dir/g;  $new =~ s/EMAIL/$email/; $new =~ s/JOBNAME/$jobname/;
 		if (!$num)
