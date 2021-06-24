@@ -7,9 +7,9 @@ use File::Basename;
 
 sub rndStr{ join'', @_[ map{ rand @_ } 1 .. shift ] }
 
-my ($chim, $out_dir, $trinity, $random, $skip_nr, $email, $test, $help, $blast, $fq_dir, $num, $test, $rna, $time); 
+my ($qsub, $chim, $out_dir, $trinity, $random, $skip_nr, $email, $test, $help, $blast, $fq_dir, $num, $test, $rna, $time); 
 $email = "toby.h.clarke\@gmail.com";
-GetOptions("c|chim:s"=>\$chim, "i|id:s"=>\$random, "k|skip"=>\$skip_nr, "e|email:s" =>\$email, "r|rna"=>\$rna, "m|time:s"=>\$time, "x|test" =>\$test, "f|fq:s"=>\$fq_dir, "t|trinity:s"=>\$trinity, "o|out_dir:s"=>\$out_dir, "b|blast_dir:s"=>\$blast, "n|num:s"=>\$num, "h|?|help"=>\$help);
+GetOptions("q|qsub"=>\$qsub, "c|chim:s"=>\$chim, "i|id:s"=>\$random, "k|skip"=>\$skip_nr, "e|email:s" =>\$email, "r|rna"=>\$rna, "m|time:s"=>\$time, "x|test" =>\$test, "f|fq:s"=>\$fq_dir, "t|trinity:s"=>\$trinity, "o|out_dir:s"=>\$out_dir, "b|blast_dir:s"=>\$blast, "n|num:s"=>\$num, "h|?|help"=>\$help);
 
 if ($help || !$trinity)
 {
@@ -24,6 +24,7 @@ if ($help || !$trinity)
     print STDERR " -f fastq directory to run paired end RSEM.\n"; 
     print STDERR " -i for the output\n";
     print STDERR " -c database to run the chimera test on\n";
+    print STDERR " -q runs PBS submissions\n";
     print STDERR " -k skip nr run\n";
 	print STDERR " -r also runs rrna and trna searchs\n";
    print STDERR " -m add time to run\n";
@@ -40,6 +41,9 @@ if ($num)
 {
 	`perl /rhome/tclarke/split_fasta_file.pl $trinity $num`;
 }
+
+my $cmd_run = "sbatch";
+my $cmd_multi = "sbatch --array=1-$num";
 
 print $0, "\n";
 my $config_file = dirname($0) . "/trtap.ini";
@@ -77,8 +81,24 @@ my $st = "#!/bin/bash -l
 #SBATCH --job-name=JOBNAME
 #SBATCH -p intel
 ";
+if ($qsub){
+	$cmd_run  = "qsub";
+	$cmd_multi = "qsub -J 1-$num";
+	$st = "#!/bin/bash -l
 
-if ($time) { $st .= "#SBATCH --time=". $time . "\n"; }
+#PBS -l nodes=1:ppn=CPU
+#PBS -l mem=10gb
+#PBS -o OUT2.out
+#PBS -e OUT2.err
+#PBS -M EMAIL
+#PBS -m abe
+#PBS -N JOBNAME
+#PBS -p intel
+";
+
+}
+if ($time && !$qsub) { $st .= "#SBATCH --time=". $time . "\n"; }
+if ($time && $qsub) { $st .= "#PBS -l walltime=". $time . "\n"; }
 my $in = $st . "\n" . $config_hash->{blast} ."
 
 cd DIR
@@ -227,9 +247,10 @@ if ($chim)
 		{ 
 			my $touch = "touch ". $random ."_CHIMERA.sub";
 			`$touch`;
-			if (!$num) {`sbatch $tmp_sh`; }
+
+			if (!$num) {`$cmd_run $tmp_sh`; }
 			else {	
-				`sbatch --array=1-$num $tmp_sh`; }
+				`$cmd_multi $tmp_sh`; }
 		}
 	}
 }
@@ -268,9 +289,9 @@ if ($rna)
                 {
                         my $touch = "touch ". $random ."_RRNA.sub";
                         `$touch`;
-                        if (!$num) {`sbatch $tmp_sh`; }
+                        if (!$num) {`$cmd_run $tmp_sh`; }
                         else {
-                                `sbatch --array=1-$num $tmp_sh`; }
+                                `$cmd_multi $tmp_sh`; }
                 }
         }
  	my $new = $in_trna;
@@ -303,9 +324,9 @@ if ($rna)
                 {
                         my $touch = "touch ". $random ."_TRNA.sub";
                         `$touch`;
-                        if (!$num) {`sbatch $tmp_sh`; }
+                        if (!$num) {`$cmd_run $tmp_sh`; }
                         else {
-                                `sbatch --array=1-$num $tmp_sh`; }
+                                `$cmd_multi $tmp_sh`; }
                 }
         }
 }
@@ -342,9 +363,9 @@ while ($ls_nblast =~ /([^\n\r]+)/g)
 		{ 
 			my $touch = "touch ". $random ."_".$id . ".sub";
 			`$touch`;
-			if (!$num) {`sbatch $tmp_sh`; }
+			if (!$num) {`$cmd_run $tmp_sh`; }
 			else {	
-				`sbatch --array=1-$num $tmp_sh`; }
+				`$cmd_multi $tmp_sh`; }
 		}
 	}
 }
@@ -384,8 +405,8 @@ my $out2 = $out_dir . "/" . $random . "_" . $id . ".out"; $new =~ s/OUT2/$out2/g
 		{
 			my $touch = "touch $out_dir/". $random ."_".$id . ".sub";
                         `$touch`;
-			if (!$num) { `sbatch $tmp_sh`; }
-			else { `sbatch --array=1-$num $tmp_sh`; }
+			if (!$num) { `$cmd_run $tmp_sh`; }
+			else { `$cmd_multi $tmp_sh`; }
 		}
 	}
 }
@@ -421,8 +442,8 @@ if (!-e $out_dir . "/" . $random . "_" . $id . ".start" && !-e $out_dir . "/" . 
      {
      	my $touch = "touch $out_dir/". $random ."_" . $id. ".sub";
         `$touch`;
-        if (!$num) {`sbatch $tmp_sh`; }
-        else { `sbatch --array=1-$num $tmp_sh`; }
+        if (!$num) {`$cmd_run $tmp_sh`; }
+        else { `$cmd_multi $tmp_sh`; }
      }
 }
 }
@@ -475,7 +496,7 @@ if ($fq_dir)
      					{
         					my $touch = "touch $out_dir/". $random ."_" . $id. ".sub";
         					`$touch`;
-        					`sbatch $tmp_sh`;
+        					`$cmd_run $tmp_sh`;
      					}
 				}
 
