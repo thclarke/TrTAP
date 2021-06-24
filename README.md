@@ -54,7 +54,7 @@ These scripts take a Trinity Assembly and through the scripts it trims the assem
 The following is a description of running the pipeline in TrTAP_SCRIPT_DIR on TRINITY_ASSEMBLY created from the read files in READ_DIR that end in READ_END. The blast databases are found in BLAST_DB. The files are written in RESULT_DIR with the header of GENOME_ID.
 ```
 cd TrTAP_SCRIPT_DIR
-perl run_blast_submit.pl -t TRINITY_ASSEMBLY -b BLAST_DIR -o RESULT_DIR -r -f READ_DIR -i GENOME_ID -c Fly -k 
+perl run_blast_submit.pl -t TRINITY_ASSEMBLY -b BLAST_DIR -o RESULT_DIR -r -f READ_DIR -i GENOME_ID -c Fly -k [-q]
 perl run_pipeline.trimOnly.pl -t TRINITY ASSEMBLY -b BLAST_DIR -r RESULT_DIR -c Avant -o RESULT_DIR -g GENOME_ID -x GENOME_ID_CHIMERA.40.txt
 perl run_pipeline.intermediate.pl -t READ_DIR -e READ_END -r RESULT_DIR -o RESULT_DIR -k
 perl run_pipeline_final.pl -b BLAST_DIR -r RESULT_DIR -g GENOME_ID_NEW -i GENOME_ID -m GENOME_ID_INT_ALL > RESULT_DIR/GENOME_ID_FIN_TRIM.gene_info.out
@@ -95,8 +95,9 @@ Submits blast runs to SLURM job submissions
  -f fastq directory to run paired end RSEM.
  -i for the output header to the sequence
  -c database to run the chimera test on
+ -q runs PBS submissions
  -k skip nr run
- -r also runs rrna and trna searchs
+ -r also runs rrna and trna searches
  -m add time to run
 
 ```
