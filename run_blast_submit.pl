@@ -93,7 +93,6 @@ if ($qsub){
 #PBS -M EMAIL
 #PBS -m abe
 #PBS -N JOBNAME
-#PBS -p intel
 ";
 
 }
