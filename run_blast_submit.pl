@@ -7,6 +7,21 @@ use File::Basename;
 
 sub rndStr{ join'', @_[ map{ rand @_ } 1 .. shift ] }
 
+sub get_full_path($){
+	my $trinity_file = basename($_[0]);
+	my $trinity_dir = dirname($_[0]);
+	my $full_dir = `cd "$trinity_dir" && pwd `;
+	chomp $full_dir;
+	return $full_dir. "/". $trinity_file;
+}
+
+sub get_full_dir($){
+        my $trinity_dir = basename($_[0]);
+        my $full_dir = `cd "$trinity_dir" && pwd `;
+        chomp $full_dir;
+        return $full_dir. "/";
+}
+
 my ($qsub, $chim, $out_dir, $trinity, $random, $skip_nr, $email, $test, $help, $blast, $fq_dir, $num, $test, $rna, $time); 
 $email = "toby.h.clarke\@gmail.com";
 GetOptions("q|qsub"=>\$qsub, "c|chim:s"=>\$chim, "i|id:s"=>\$random, "k|skip"=>\$skip_nr, "e|email:s" =>\$email, "r|rna"=>\$rna, "m|time:s"=>\$time, "x|test" =>\$test, "f|fq:s"=>\$fq_dir, "t|trinity:s"=>\$trinity, "o|out_dir:s"=>\$out_dir, "b|blast_dir:s"=>\$blast, "n|num:s"=>\$num, "h|?|help"=>\$help);
@@ -37,16 +52,15 @@ if (!-e $trinity)
 	quit(-1);
 }
 
+$trinity = get_full_path($trinity);
+$blast = get_full_dir($blast);
+$fq_dir = get_full_dir($fq_dir);
+$out_dir = get_full_dir($out_dir);
+
 if ($num)
 {
 	`perl /rhome/tclarke/split_fasta_file.pl $trinity $num`;
 }
-
-my $trinity_file = basename($trinity);
-my $trinity_dir = dirname($trinity);
-my $full_dir = `cd "$trinity_dir" && pwd `;
-chomp $full_dir;
-$trinity = $full_dir. "/". $trinity_file;
 
 my $cmd_run = "sbatch";
 my $cmd_multi = "sbatch --array=1-$num";
