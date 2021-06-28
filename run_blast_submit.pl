@@ -26,9 +26,9 @@ if ($help || !$trinity)
     print STDERR " -c database to run the chimera test on\n";
     print STDERR " -q runs PBS submissions\n";
     print STDERR " -k skip nr run\n";
-	print STDERR " -r also runs rrna and trna searchs\n";
-   print STDERR " -m add time to run\n";
-	exit();
+    print STDERR " -r also runs rrna and trna searchs\n";
+    print STDERR " -m add time to run\n";
+    exit();
 }
 
 if (!-e $trinity)
@@ -41,6 +41,12 @@ if ($num)
 {
 	`perl /rhome/tclarke/split_fasta_file.pl $trinity $num`;
 }
+
+my $trinity_file = basename($trinity);
+my $trinity_dir = dirname($trinity);
+my $full_dir = `cd "$trinity_dir" && pwd `;
+chomp $full_dir;
+$trinity = $full_dir. "/". $trinity_file;
 
 my $cmd_run = "sbatch";
 my $cmd_multi = "sbatch --array=1-$num";
