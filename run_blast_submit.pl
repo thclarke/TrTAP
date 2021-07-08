@@ -16,7 +16,7 @@ sub get_full_path($){
 }
 
 sub get_full_dir($){
-        my $trinity_dir = basename($_[0]);
+	my $trinity_dir = $_[0];
         my $full_dir = `cd "$trinity_dir" && pwd `;
         chomp $full_dir;
         return $full_dir. "/";
