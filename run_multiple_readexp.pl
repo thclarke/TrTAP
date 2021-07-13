@@ -2,16 +2,13 @@
 use Getopt::Long;
 use strict;
 use warnings;
-use Config::File;
-use File::Basename;
 
-
-my ($dir, $out, $pattern, $help, $index, $nthreads, $end, $paired, $type, $mem);
+my ($qsub,$dir, $out, $pattern, $help, $index, $nthreads, $end, $paired, $type, $mem);
 $end = ".fq";
 $type = "bowtie2";
 $mem = 20;
 $nthreads = 1;
-GetOptions("m|mem:s" => \$mem, "d|dir:s" =>\$dir, "n|nthread"=>\$nthreads,"o|out:s"=>\$out, "t|type:s"=>\$type, "e|end:s"=>\$end, "i|index:s"=>\$index, "paired|p"=>\$paired, "h|?|help"=>\$help);
+GetOptions("q|qsub"=>\$qsub, "m|mem:s" => \$mem, "d|dir:s" =>\$dir, "n|nthread"=>\$nthreads,"o|out:s"=>\$out, "t|type:s"=>\$type, "e|end:s"=>\$end, "i|index:s"=>\$index, "paired|p"=>\$paired, "h|?|help"=>\$help);
 
 if ($help || !($dir))
 {
@@ -24,53 +21,68 @@ if ($help || !($dir))
     print STDERR " -t program type to run. Default is bowtie2\n";
     print STDERR " -e end of string\n";
     print STDERR " -n number of threads\n";
-
+    print STDERR " -q runs PBS submissions\n";
     print STDERR " -m memory (in g) to request. Default is 20\n";
 	die();
 }
 
-my $config_file = dirname($ARGV[0]) . "/trtap.ini";
+my $config_file = dirname($0) . "/trtap.ini";
 if (!-e $config_file){
-	print STDERR "Cannot locate config file at $config_file... Exiting...\n\n"; 
-	quit(-1);
+        print STDERR "Cannot locate config file at $config_file... Exiting...\n\n";
+        quit(-1);
 }
 
-my $config_hash = Config::File::read_config_file($config_file);
+my $config_hash ;
+open(my $conf_file, "<", $config_file);
+while (<$conf_file>) { chomp; # no newline 
+        s/#.*//; # no comments 
+        s/^\s+//; # no leading 
+        s/\s+$//; # no trailing white next 
+        next unless length; # anything left? 
+        my ($var, $value) = split(/\s*=\s*/, $_, 2);
+        $config_hash->{$var} = $value;
+}
 
 my $sh = "#!/bin/bash -l\n\n#SBATCH --nodes=1\n#SBATCH --ntasks=1\n#SBATCH --cpus-per-task=NTHREAD\n";
-$sh .= "#SBATCH --output=run_rsem_OUT.txt\n#SBATCH --mail-user=clarket\@wlu.edu\n#SBATCH --mail-type=ALL\n";
+$sh .= "#SBATCH --output=run_rsem_OUT.txt\n\n";
 $sh .= "#SBATCH --mem=MEMg\n#SBATCH --time=48:00:00\n#SBATCH --job-name=run_rsem_OUT\n#SBATCH -p intel\n\n";
 
+my $cmd_run = "sbatch";
+
+if ($qsub){
+        $cmd_run  = "qsub";
+        $sh = "#!/bin/bash -l
+
+#PBS -l nodes=1:ppn=CPU
+#PBS -l mem=MEMgb
+#PBS -o run_rsem_OUT.out
+#PBS -e run_rsem_OUT.err
+#PBS -N run_rsem_OUT
+";
+}
 
 
 if (lc($type) eq "rsem")
 {
-	$sh .= $config_hash->{rsem};
-	$sh .= $config_hash->{bowtie};
+	$sh .=  $config_hash->{bowtie} . "\n". $config_hash->{rsem} ."\n";
 	$sh .= " cd DIR\nrsem-calculate-expression FQ RSEM_INDEX OUTFILE\n";
 }
 if (lc($type) eq "bowtie2")
 {
-	my $src = dirname($ARGV[0]);
-	$sh .= $config_hash->{bowtie2};
-	$sh .= $config_hash->{samtools};
-	$sh .= $config_hash->{python3};
+	$sh .= $config_hash->{bowtie2} . "\n". $config_hash->{python3} ."\n";
 	$sh .= "cd DIR\nbowtie2 -a FQ -x RSEM_INDEX -S OUTFILE.sam\n";
 	$sh .= "samtools view -bS OUTFILE.sam > OUTFILE.bam\n";
 	$sh .= "rm OUTFILE.sam\n";
 	$sh .= "samtools sort -o OUTFILE.sort.bam OUTFILE.bam\n";
 	$sh .= "rm OUTFILE.bam\n";
 	$sh .= "samtools index OUTFILE.sort.bam\n";
-	$sh .= "python3 $src/count_bam_hits_fpkm.py OUTFILE.sort.bam 2 >OUTFILE.bowtie.cnts\n"
+	$sh .= "python3 ~/count_bam_hits_fpkm.py OUTFILE.sort.bam 2 >OUTFILE.bowtie.cnts\n"
 }
 if (lc($type) eq "count")
 {
-        my $src = dirname($ARGV[0]);
-	$sh .= $config_hash->{bowtie2};
-        $sh .= $config_hash->{samtools};
-        $sh .= $config_hash->{python3};    
+        $sh .= $config_hash->{bowtie2} . "\n". $config_hash->{python3} ."\n";   
         $sh .= "cd DIR\n";
-        $sh .= "python3 $src/count_bam_hits_fpkm.py OUTFILE.sort.bam 2 >OUTFILE.bowtie.cnts\n"
+        $sh .= "python3 ~/count_bam_hits_fpkm.py OUTFILE.sort.bam 2 >OUTFILE.bowtie.cnts\n"
 }
 my $ls;
 if ($paired)
@@ -150,7 +162,7 @@ while ($ls =~ /([^\n\r]+)/g)
 		close($fo);
 		my $cmd = "chmod a+x ".$out ."\/" .$out_id1 . "_$type.sh\n";
 		`$cmd`;
-		$cmd = "sbatch ".$out ."\/" . $out_id1. "_$type.sh";
+		$cmd = "$cmd_run ".$out ."\/" . $out_id1. "_$type.sh";
 		`$cmd`;
 		}
 	}

@@ -4,11 +4,11 @@ use Getopt::Long;
 use Cwd;
 use File::Basename;
 
-my ($out_dir, $trinity, $genome_id, $eval, $skip_bowtie, $b_eval, $start, $test, $help, $all_rsem, $blast, $res_dir,$read_dir, $read_end, $mem);
+my ($out_dir, $qsub, $trinity, $genome_id, $eval, $skip_bowtie, $b_eval, $start, $test, $help, $all_rsem, $blast, $res_dir,$read_dir, $read_end, $mem);
 $genome_id = "GEN";;
 $eval= 1e-5;
 $mem = 40;
-GetOptions("r|result:s"=>\$res_dir,"x|skip"=>\$skip_bowtie, "m|mem:s"=>\$mem,"e|end:s"=>\$read_end, "g|genome:s"=>\$genome_id,  "t|read_dir:s"=>\$read_dir, "o|out_dir:s"=>\$out_dir, "h|?|help"=>\$help);
+GetOptions("q|qsub"=>\$qsub, "r|result:s"=>\$res_dir,"x|skip"=>\$skip_bowtie, "m|mem:s"=>\$mem,"e|end:s"=>\$read_end, "g|genome:s"=>\$genome_id,  "t|read_dir:s"=>\$read_dir, "o|out_dir:s"=>\$out_dir, "h|?|help"=>\$help);
 
 if ($help || !$read_dir)
 {
@@ -20,8 +20,9 @@ if ($help || !$read_dir)
     print STDERR " -o output directory. Default is the current directory\n";
     print STDERR " -g genome id. Default = GEN\n";
     print STDERR " -m memory for the run. Default = 40g\n";
+    print STDERR " -q runs PBS submissions\n";
     print STDERR " -x skip bowtie2 runs\n";
-	  exit();
+    exit();
 }
 
 my $config_file = dirname($0) . "/trtap.ini";
@@ -41,6 +42,7 @@ while (<$conf_file>) { chomp; # no newline
 	$config_hash->{$var} = $value; 
 }
 
+my $src = dirname($0);
 #Make Databases
 my $database_id;
 if (-e $res_dir. "/" . $genome_id .".all_nuc.fasta")
@@ -80,11 +82,13 @@ if (!-e $res_dir . "/bowtie")
 {
 	`mkdir $res_dir/bowtie`;
 }
-my $str = "cd $res_dir/\nperl /bigdata/hayashilab/shared/ayoublab/toby/run_multiple_readexp.pl -d $read_dir -o $out_dir/rsem -p -i $res_dir/$database_id -t rsem -e $read_end -m $mem";
+my $add;
+if ($qsub) { $add = " -q"; }
+my $str = "cd $res_dir/\nperl $src/run_multiple_readexp.pl -d $read_dir -o $out_dir/rsem -p -i $res_dir/$database_id -t rsem -e $read_end -m $mem" . $add;
 `$str`;
 if (!$skip_bowtie)
 {
-	$str = "cd $res_dir/\nperl /bigdata/hayashilab/shared/ayoublab/toby/run_multiple_readexp.pl -d $read_dir -o $out_dir/bowtie -p -i $res_dir/$database_id -t bowtie2 -e $read_end -m $mem";
+	$str = "cd $res_dir/\nperl $src/run_multiple_readexp.pl -d $read_dir -o $out_dir/bowtie -p -i $res_dir/$database_id -t bowtie2 -e $read_end -m $mem" . $add;
 	`$str`;
 }
 
@@ -93,22 +97,36 @@ my $out = "#!/bin/bash -l
 #SBATCH --nodes=1
 #SBATCH --ntasks=20
 #SBATCH --cpus-per-task=1
-#SBATCH --output=VA_v_Swissprot.out
-#SBATCH --mail-user=toby.h.clarke\@gmail.com
-#SBATCH --mail-type=ALL
+#SBATCH --output=GEN_v_Swissprot.out
 #SBATCH --mem=1g
-#SBATCH --job-name=batchblast
+#SBATCH --job-name=JOBNAME
 #SBATCH -p intel
 
-".
+";
+my $cmd_run = "sbatch";
+
+if ($qsub){
+        $cmd_run  = "qsub";
+        $out = "#!/bin/bash -l
+
+#PBS -l nodes=20:ppn=CPU
+#PBS -l mem=1gb
+#PBS -o GEN_v_Swissprot.out
+#PBS -e GEN_v_Swissprot.err
+#PBS -N JOBNAME
+";
+}
+
+$out .=
 $config_hash->{blast} . "\n" . 
 $config_hash->{uniprot} . "
 
 cd ~/
 blastp -query ".$res_dir. "/" . $genome_id .".prot.fasta -db \$UNIPROT_DB/uniprot_sprot.fasta -out " . $out_dir. "/" . $genome_id . "_v_SwissProt.blastx.txt -max_target_seqs 1 -num_threads 20 -evalue 1e-5 -outfmt 6";
 
+$out =~ s/JOBNAME/swissprot_blast/g; $out =~ s/GEN/$genome_id/g;
 open(my $fo, ">", $out_dir ."/". $genome_id . "_v_swissprot.sh"); print {$fo} $out; close($fo);
-$str = "chmod a+x " . $out_dir ."/". $genome_id . "_v_swissprot.sh\ncd $out_dir\nsbatch  ". $out_dir ."/". $genome_id . "_v_swissprot.sh";
+$str = "chmod a+x " . $out_dir ."/". $genome_id . "_v_swissprot.sh\ncd $out_dir\n$cmd_run  ". $out_dir ."/". $genome_id . "_v_swissprot.sh";
 if (!-e  $out_dir. "/" . $genome_id . "_v_SwissProt.blastx.txt")
 {
 	`$str`;
@@ -119,22 +137,34 @@ $out = "#!/bin/bash -l
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
-#SBATCH --output=run_LMTrin_busco2_2.txt
-#SBATCH --mail-user=clarket\@wlu.edu
-#SBATCH --mail-type=ALL
+#SBATCH --output=run_GEN_Trin_busco2_2.txt
 #SBATCH --mem=20g
 #SBATCH --time=24:00:00
-#SBATCH --job-name=run_busco-mw_trin2
+#SBATCH --job-name=run_busco-GEN
 #SBATCH -p intel
 
-" . $config_hash->{busco} ."
+";
+if ($qsub){
+        $out = "#!/bin/bash -l
+#PBS -l nodes=1:ppn=CPU
+#PBS -l mem=20gb
+#PBS -o GEN_v_busco.out
+#PBS -e GEN_v_busco.err
+#PBS -N JOBNAME
+";
+}
+
+
+$out .= $config_hash->{busco} ."
 
 cd $out_dir
 run_BUSCO.py -i ". $res_dir. "/" . $genome_id .".prot.fasta -o $genome_id  -l /bigdata/hayashilab/shared/ayoublab/toby/arthropoda_odb9 -m prot -c 1 -f -sp tick";
+
+$out =~ s/JOBNAME/busco/g; $out =~ s/GEN/$genome_id/g;
 if (!-e  $out_dir . "/run_" . $genome_id)
 {
 	open(my $fo, ">", $out_dir ."/". $genome_id . "_v_BUSCO.sh"); print {$fo} $out; close($fo);
-	$str = "chmod a+x " . $out_dir ."/". $genome_id . "_v_BUSCO.sh\ncd $out_dir\nsbatch  ". $out_dir ."/". $genome_id . "_v_BUSCO.sh";
+	$str = "chmod a+x " . $out_dir ."/". $genome_id . "_v_BUSCO.sh\ncd $out_dir\n$cmd_run  ". $out_dir ."/". $genome_id . "_v_BUSCO.sh";
 	`$str`;
 }
 $out = "#!/bin/bash -l
@@ -142,22 +172,34 @@ $out = "#!/bin/bash -l
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
-#SBATCH --output=MW_v_HMM.out
-#SBATCH --mail-user=toby.h.clarke\@gmail.com
-#SBATCH --mail-type=ALL
+#SBATCH --output=GEN_v_HMM.out
 #SBATCH --mem=1g
 #SBATCH --job-name=hmm
 #SBATCH -p intel
-".
-$config_hash->{hmmer} . "\n" .
+";
+
+if ($qsub){
+        $out = "#!/bin/bash -l
+#PBS -l nodes=1:ppn=CPU
+#PBS -l mem=1gb
+#PBS -o GEN_v_HMM.out
+#PBS -e GEN_v_HMM.err
+#PBS -N JOBNAME
+";
+}
+
+
+$out .= $config_hash->{hmmer} . "\n" .
 $config_hash->{pfam} . "
 
 cd $out_dir
 hmmscan --noali --tblout $genome_id.hmm.txt -E 1e-5 \$PFAM_DB/Pfam-A.hmm $res_dir"."/"."$genome_id.prot.fasta";
+$out =~ s/JOBNAME/busco/g; $out =~ s/GEN/$genome_id/g;
+
 if (!-e  $out_dir . "/$genome_id.hmm.txt")
 {
         open(my $fo, ">", $out_dir ."/". $genome_id . "_v_PFAM.sh"); print {$fo} $out; close($fo);
-        $str = "chmod a+x " . $out_dir ."/". $genome_id . "_v_PFAM.sh\ncd $out_dir\nsbatch  ". $out_dir ."/". $genome_id . "_v_PFAM.sh";
+        $str = "chmod a+x " . $out_dir ."/". $genome_id . "_v_PFAM.sh\ncd $out_dir\n$cmd_run  ". $out_dir ."/". $genome_id . "_v_PFAM.sh";
         `$str`;
 }
 
