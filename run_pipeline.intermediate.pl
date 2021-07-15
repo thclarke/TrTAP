@@ -4,11 +4,11 @@ use Getopt::Long;
 use Cwd;
 use File::Basename;
 
-my ($out_dir, $qsub, $trinity, $genome_id, $eval, $skip_bowtie, $b_eval, $start, $test, $help, $all_rsem, $blast, $res_dir,$read_dir, $read_end, $mem);
+my ($out_dir, $busco5, $qsub, $trinity, $genome_id, $eval, $skip_bowtie, $b_eval, $start, $test, $help, $all_rsem, $blast, $res_dir,$read_dir, $read_end, $mem);
 $genome_id = "GEN";;
 $eval= 1e-5;
 $mem = 40;
-GetOptions("q|qsub"=>\$qsub, "r|result:s"=>\$res_dir,"x|skip"=>\$skip_bowtie, "m|mem:s"=>\$mem,"e|end:s"=>\$read_end, "g|genome:s"=>\$genome_id,  "t|read_dir:s"=>\$read_dir, "o|out_dir:s"=>\$out_dir, "h|?|help"=>\$help);
+GetOptions("b|busco5"->\$busco5, "q|qsub"=>\$qsub, "r|result:s"=>\$res_dir,"x|skip"=>\$skip_bowtie, "m|mem:s"=>\$mem,"e|end:s"=>\$read_end, "g|genome:s"=>\$genome_id,  "t|read_dir:s"=>\$read_dir, "o|out_dir:s"=>\$out_dir, "h|?|help"=>\$help);
 
 if ($help || !$read_dir)
 {
@@ -22,6 +22,7 @@ if ($help || !$read_dir)
     print STDERR " -m memory for the run. Default = 40g\n";
     print STDERR " -q runs PBS submissions\n";
     print STDERR " -x skip bowtie2 runs\n";
+    print STDERR " -b busco is version 5\n";
     exit();
 }
 
@@ -158,8 +159,13 @@ if ($qsub){
 $out .= $config_hash->{busco} ."
 
 cd $out_dir
-run_BUSCO.py -i ". $res_dir. "/" . $genome_id .".prot.fasta -o $genome_id  -l /bigdata/hayashilab/shared/ayoublab/toby/arthropoda_odb9 -m prot -c 1 -f -sp tick";
-
+";
+if (!$busco5){
+	$out .= "run_BUSCO.py -i ". $res_dir. "/" . $genome_id .".prot.fasta -o $genome_id  -l $blastdb/arthropoda_odb9 -m prot -c 1 -f -sp tick";
+}
+else{
+	$out .= "busco -i ". $res_dir. "/" . $genome_id .".prot.fasta -o $genome_id  -l arthropoda_odb10 -m prot -c 1 -f";
+}
 $out =~ s/JOBNAME/busco/g; $out =~ s/GEN/$genome_id/g;
 if (!-e  $out_dir . "/run_" . $genome_id)
 {

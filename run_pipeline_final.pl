@@ -2,7 +2,7 @@
 use strict;
 use Getopt::Long;
 use Cwd;
-use Bio::Perl;
+#use Bio::Perl;
 #use Config::File;
 use File::Basename;
 
