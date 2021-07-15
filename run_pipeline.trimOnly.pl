@@ -227,7 +227,6 @@ if (-e $blast)
 				if ($closest)
 				{
 					my @nodes = $tree->find_node(-id => $closest);
-					print STDERR (scalar(@nodes)+0), "\n";
 					if (scalar(@nodes) < 1)
 					{
 						print STDERR "Cannot find the node... randomly ranking the nodes...";
