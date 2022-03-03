@@ -1,4 +1,4 @@
 SpidTerm
 Spidroin
-(Fly:1,(Ixo:1,(Smim:1,(Ptep:1,(Avent:1,Neph:1):1):1):1):1)
+(Fly:1,(Ixo:1,(Smim:1,(Ptep:1,(Abruennichi:1,Neph:1):1):1):1):1)
 
