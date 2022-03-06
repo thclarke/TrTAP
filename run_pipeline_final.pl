@@ -444,13 +444,13 @@ foreach my $a (keys(%list))
 my $out_id = $genome_id;
 if ($out_id =~ /INT/) { $out_id =~ s/INT/FIN/; } else { $out_id .= "_FIN"; }
 
-open(my $fo, ">", $out_dir . "/" . $out_id . ".gene_info.out");
+open(my $fo, ">", $res_dir . "/" . $out_id . ".gene_info.out");
 my %tot;
 my %type;
 my %uni;
 my @h = ("id", "score", "allele", "match_genome",  "match_id", "match_len", "len_cov", "e_value", "start_pos", "start", "dir", "posschi", "second_best_allele", "bit_score", "orig_len", "translate_len", "fly_go", "pfam_def", "pfam_go", "sw_def", "sw_tax", "sw_tax_full", "sw_tax_name", "sw_tax_div", "sw_go","BUSCO", "best_rsem_tpm", "best_rsem_tpm_id", "tot_rsem_tpm", "best_median_rsem_tpm", "best_median_lib_rsem_tpm", "best_botwtie_cnts", "best_botwtie_cnts_id", "tot_botwtie_cnts", "all_go", "go_slim", "blcl_num", "blcl_cnt", "blcl_best", "bl_range", "overlap");
 my @hread = ("Trinity ID","Score","Trinity Allele Selected","DB Genome with Best Match","ID of the Best Matching DB Gene","Full Protein Length of the Best Match GENE","Length of the Coverage","E-Value of BlastX Martch","Frame Start Position (1,2 or 3)","Direction of the Hit","Is a Possible Chimeric","Second Best Allele","Bit Score of BlastX Hit","Length of Trinity Sequence","Length of Translated Trinity","GO Terms from Drosophila Match","Name of PFAM ID","GO Terms from PFAM","SwissProt Definition","NCBI Taxonomy ID from SwissProt Match","Taxonomy String from SwissProt", "Taxonony Name from SwissProt", "Taxonomy Division from SwissProt", "GO Terms from Swiss Prot Match","BUSCO ID Match","Highest RSEM TPM","Library with the Highest RSEM TPM","Total RSEM TPM over all Libraries","Highest Tissue Median RSEM TPM","Tissue with the Highest Median RSEM TPM","Highest Bowtie2 Count","Library with the Highest Bowtie2 Count","Total Bowtie2 Count over all Libraries","Combined GO Terms from Drosophila, SwissProt and PFAM","Generic GO Slim terms from Combined GO Terms", "BlastClust Cluster ID", "Number of Contigs in BlastClust", "Best Contig in BlastClust Cluster", "Blast Range", "% overlap with BEST"); 
-foreach my $h (@h) { print {$fo} "$h\t"; } print {$fo} "\n";
+foreach my $h (@h) { print {$fo} "$h\t"; print STDERR "$h\t"; } print {$fo} "\n";
 foreach my $a (keys(%list))
 {
 	if ($list{$a}->{id} && $list{$a}->{id} ne "NA")
@@ -476,8 +476,22 @@ my @ids = ('score', 'tot_rsem_tpm', 'BUSCO');
 open(my $fprot, "<", "$res_dir/$genome_id" .".prot.fasta");
 open(my $fout, ">", "$res_dir/$out_id" .".prot.fasta");
 while(my $v = <$fprot>){
-
+	while ($v =~ />(\S+)/){
+		my $id = $1; my $tmp; $v = <$fprot>; 
+		while(!eof($fprot) && $v !~ />/){
+			$v =~ /([^\r\n]+)/; $tmp .= $1; $v = <$fprot>;
+		}
+		if (eof($fprot)){
+			$v =~ /([^\r\n]+)/; $tmp .= $1;
+		}
+		my $a = $list{$id}->{score};	
+		if ($a eq "GOOD" || $a eq "BEST" || $a eq "LONGORF" || $a eq "BEST2") {
+			print {$fout} ">$id\n$tmp\n";
+		}
+	}			
 }
+close($fout);
+close($fprot);
 
 foreach my $a (keys(%uni)) {
 	my $out1 = $a; foreach my $b (@ids) {

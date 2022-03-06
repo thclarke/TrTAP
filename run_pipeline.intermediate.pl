@@ -8,7 +8,7 @@ my ($out_dir, $busco5, $qsub, $trinity, $genome_id, $eval, $skip_bowtie, $b_eval
 $genome_id = "GEN";;
 $eval= 1e-5;
 $mem = 40;
-GetOptions("b|busco5"->\$busco5, "q|qsub"=>\$qsub, "r|result:s"=>\$res_dir,"x|skip"=>\$skip_bowtie, "m|mem:s"=>\$mem,"e|end:s"=>\$read_end, "g|genome:s"=>\$genome_id,  "t|read_dir:s"=>\$read_dir, "o|out_dir:s"=>\$out_dir, "h|?|help"=>\$help);
+GetOptions("b|busco5"=>\$busco5, "q|qsub"=>\$qsub, "r|result:s"=>\$res_dir,"x|skip"=>\$skip_bowtie, "m|mem:s"=>\$mem,"e|end:s"=>\$read_end, "g|genome:s"=>\$genome_id,  "t|read_dir:s"=>\$read_dir, "o|out_dir:s"=>\$out_dir, "h|?|help"=>\$help);
 
 if ($help || !$read_dir)
 {
@@ -161,7 +161,7 @@ $out .= $config_hash->{busco} ."
 cd $out_dir
 ";
 if (!$busco5){
-	$out .= "run_BUSCO.py -i ". $res_dir. "/" . $genome_id .".prot.fasta -o $genome_id  -l $blastdb/arthropoda_odb9 -m prot -c 1 -f -sp tick";
+	$out .= "run_BUSCO.py -i ". $res_dir. "/" . $genome_id .".prot.fasta -o $genome_id  -l $blast/arthropoda_odb9 -m prot -c 1 -f -sp tick";
 }
 else{
 	$out .= "busco -i ". $res_dir. "/" . $genome_id .".prot.fasta -o $genome_id  -l arthropoda_odb10 -m prot -c 1 -f";
