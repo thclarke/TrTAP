@@ -469,14 +469,14 @@ if ($fq_dir)
 {
 	if (! -e $out_dir . "/" . $random .".rsemdb")
 	{
-		my $sh = config_hash->{rsem} ."
+		my $sh = $config_hash->{rsem} ."
 		rsem-prepare-reference --bowtie $trinity $out_dir/$random
 		touch $out_dir/$random.rsemdb";
 		`$sh`;
 	}  
   	if (! -e $out_dir . "/" . $random .".btdb")
         {
-                my $sh = config_hash->{bowtie} ."
+                my $sh = $config_hash->{bowtie} ."
                 bowtie-build $trinity $out_dir/$random
                 touch $out_dir/$random.btdb";
 		`$sh`;
