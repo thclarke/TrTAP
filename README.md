@@ -1,6 +1,6 @@
 # TrTAP README and Installation
 ## Introduction
-Transcriptome Trimming and Annotation Pipeline is a series of perl scripts designed to work with several standard bioinformatic tools to successfully classify the transcripts within a de novo transcriptome to select the most supported isoforms and alleles and to remove any poorly supported transcripts; and then to annotate the remaining transcripts.
+Transcriptome Trimming and Annotation Pipeline is a series of perl scripts designed to work with several standard bioinformatic tools to successfully classify the transcripts within a de novo transcriptome to select the most supported isoforms and alleles and to remove any poorly supported transcripts; and then to annotate the remaining transcripts. It was designed for Trinity transcriptomes with the Trinity format, but will accept multiple file types. If you are using alternative formats that have multiple alleles, we suggest reformating the name to match Trinity (i.e. ending in "_i#")
 
 The current setup here is designed for Aranchnids but blast databases from other phyla can be substituted in.
 
@@ -26,7 +26,7 @@ The current setup here is designed for Aranchnids but blast databases from other
  
 ### Data
  -  Read Files
- -  Trinity Assembly
+ -  Transcriptome Assembly (preferably created with Trinity (https://github.com/trinityrnaseq/trinityrnaseq/wiki))
  	- *Trinity files can be generated from the read files*
  -  Blast Databases
     - The below databases are included in the github repository. It is possible to add additional databases. They should be placed in the same directory and the id placed in the ranking file.
@@ -49,13 +49,13 @@ The current setup here is designed for Aranchnids but blast databases from other
 
 ## Usage
 
-These scripts take a Trinity Assembly and through the scripts it trims the assembly to identify high confidence proteins and to annotate these.
+These scripts take an assembly, preferrably created via Trinity, and through the scripts it trims the assembly to identify high confidence proteins and to annotate these.
 
 The following is a description of running the pipeline in TrTAP_SCRIPT_DIR on TRINITY_ASSEMBLY created from the read files in READ_DIR that end in READ_END. The blast databases are found in BLAST_DB. The files are written in RESULT_DIR with the header of GENOME_ID.
 ```
 cd TrTAP_SCRIPT_DIR
-perl run_blast_submit.pl -t TRINITY_ASSEMBLY -b BLAST_DIR -o RESULT_DIR -r -f READ_DIR -i GENOME_ID -c Fly -k [-q]
-perl run_pipeline.trimOnly.pl -t TRINITY ASSEMBLY -b BLAST_DIR -r RESULT_DIR -c Avant -o RESULT_DIR -g GENOME_ID -x GENOME_ID_CHIMERA.40.txt
+perl run_blast_submit.pl -t ASSEMBLY -b BLAST_DIR -o RESULT_DIR -r -f READ_DIR -i GENOME_ID -c Fly -k [-q]
+perl run_pipeline.trimOnly.pl -t ASSEMBLY -b BLAST_DIR -r RESULT_DIR -c Avant -o RESULT_DIR -g GENOME_ID -x GENOME_ID_CHIMERA.40.txt
 perl run_pipeline.intermediate.pl -t READ_DIR -e READ_END -r RESULT_DIR -o RESULT_DIR -x -g GENOME_ID
 perl run_pipeline_final.pl -b BLAST_DIR -r RESULT_DIR -g GENOME_ID_NEW -i GENOME_ID -m GENOME_ID_INT_ALL > RESULT_DIR/GENOME_ID_FIN_TRIM.gene_info.out
 ```
@@ -81,7 +81,7 @@ TrTAP uses a config file **trtap.ini** to set up the locations of the programs a
  
 
 ### run_blast_submit.pl 
-Submits all the blast runs against the Trinity Assembly to SLURM that the subsequent files use to trim the assembly using the blast databases in the database directory. Additionally the program creates a RSEM database and runs the RSEM against all of the read directory.
+Submits all the blast runs against the assembly to SLURM (or QSUB) that the subsequent files use to trim the assembly using the blast databases in the database directory. Additionally the program creates a RSEM database and runs the RSEM against all of the read directory.
 ```
 perl run_blast_submit.pl 
 Submits blast runs to SLURM job submissions
@@ -103,7 +103,7 @@ Submits blast runs to SLURM job submissions
 ```
 
 ### run_pipeline.trimOnly.pl
-Once the SLURM runs from run_blast_submit.pl are finished, the "best" contig of the Trinity assembly is selected using the blast results, using the ranked databases from the ranking.txt file. Additionally when available, Chimeric and RNA sequences are removed from the intermediate results. The intermediate peptide, coding, and nucleotide files as well as an information table is returned with the ID addition of _INT_TRIM added to the genome id.
+Once the SLURM runs from run_blast_submit.pl are finished, the "best" contig of the assembly is selected using the blast results, using the ranked databases from the ranking.txt file. Additionally when available, Chimeric and RNA sequences are removed from the intermediate results. The intermediate peptide, coding, and nucleotide files as well as an information table is returned with the ID addition of _INT_TRIM added to the genome id.
 ```
 Runs Annotation and Translation on a Trinity Sample
 
