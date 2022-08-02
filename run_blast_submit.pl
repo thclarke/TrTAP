@@ -23,7 +23,6 @@ sub get_full_dir($){
 }
 
 my ($qsub, $chim, $out_dir, $trinity, $random, $skip_nr, $email, $test, $help, $blast, $fq_dir, $num, $test, $rna, $time); 
-$email = "toby.h.clarke\@gmail.com";
 GetOptions("q|qsub"=>\$qsub, "c|chim:s"=>\$chim, "i|id:s"=>\$random, "k|skip"=>\$skip_nr, "e|email:s" =>\$email, "r|rna"=>\$rna, "m|time:s"=>\$time, "x|test" =>\$test, "f|fq:s"=>\$fq_dir, "t|trinity:s"=>\$trinity, "o|out_dir:s"=>\$out_dir, "b|blast_dir:s"=>\$blast, "n|num:s"=>\$num, "h|?|help"=>\$help);
 
 if ($help || !$trinity)
@@ -95,9 +94,7 @@ my $st = "#!/bin/bash -l
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=CPU
 #SBATCH --output=OUT2.out
-#SBATCH --mail-user=EMAIL
-#SBATCH --mail-type=ALL
-#SBATCH --mem=10g
+EMAIL#SBATCH --mem=10g
 #SBATCH --job-name=JOBNAME
 #SBATCH -p intel
 ";
@@ -239,7 +236,9 @@ if ($chim)
 		if ($type eq "n") { $new =~ s/BLAST/tblastx/; $b_type = "tblastx";}
 		my $abs = dirname($0);
 		$new =~ s/CURRDIR/$abs/g;
-		$new =~ s/DIR/$out_dir/g;  $new =~ s/EMAIL/$email/; $new =~ s/JOBNAME/$jobname/;
+		my $email_rep = "";
+		if ($email) { "#SBATCH --mail-user=$email\n#SBATCH --mail-type=ALL"; }
+		$new =~ s/DIR/$out_dir/g;  $new =~ s/EMAIL/$email_rep/; $new =~ s/JOBNAME/$jobname/;
 		if (!$num)
 		{
 			my $out_id = $out_dir ."/" . $random . "_v_CHIMERA.$b_type.out";
@@ -470,15 +469,17 @@ if ($fq_dir)
 {
 	if (! -e $out_dir . "/" . $random .".rsemdb")
 	{
-		`module load rsem 
-		 rsem-prepare-reference --bowtie $trinity $out_dir/$random`;
-		`touch $out_dir/$random.rsemdb`;
+		my $sh = config_hash->{rsem} ."
+		rsem-prepare-reference --bowtie $trinity $out_dir/$random
+		touch $out_dir/$random.rsemdb";
+		`$sh`;
 	}  
   	if (! -e $out_dir . "/" . $random .".btdb")
         {
-                `module load bowtie 
-                 bowtie-build $trinity $out_dir/$random`;
-                `touch $out_dir/$random.btdb`;
+                my $sh = config_hash->{bowtie} ."
+                bowtie-build $trinity $out_dir/$random
+                touch $out_dir/$random.btdb";
+		`$sh`;
         }
 	my $ls = `ls $fq_dir/*1.f*`;
 	while ($ls =~ /([^\n\r+]+)/g)

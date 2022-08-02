@@ -4,7 +4,7 @@ use Bio::TreeIO;
 use Getopt::Long;
 use Bio::TreeIO::NewickParser;
 use Cwd;
-use Bio::Perl;
+use Bio::Seq;
 use File::Basename;
 
 my ($out_dir, $trinity, $chimera, $genome_id, $eval, $b_eval, $start, $test, $help, $all_rsem, $blast, $res_dir,$closest, $full_chim, $new_genome_id);
@@ -102,7 +102,8 @@ if ($full_chim && -e $full_chim)
 	print STDERR "FOund ", scalar(keys(%$orig_chim))," contigs as chimeric using other file...\n";
 }
 
-my $ls = `ls $res_dir/*_v_*RNA.out`;
+my $ls1 = "ls $res_dir/$genome_id" . "_v_*RNA.out";
+my $ls = `$ls1`;
 while ($ls =~ /([^\n\r]+)/g)
 {
   	my $file = $1;
@@ -147,10 +148,16 @@ if ($trinity && -e $trinity)
 	print STDERR "Finished reading.. fasta\n";
 	foreach my $a (keys(%seq))
 	{
-		$a =~ /(\S+)_i(\d+)\Z/;
-		
-		my $gene_id = $1;
-		my $allele = $2;
+		#print "$a\n";
+		my $gene_id; my $allele;
+		if ($a =~ /(\S+)_i(\d+)\Z/){
+			$gene_id = $1;
+			$allele = $2;
+		}
+		else{
+			$gene_id = $a;
+			$allele = 1;
+		}
 		$all_alleles->{$gene_id} .= "$allele;";
 		if (!$matrix->{$gene_id})
 		{
@@ -189,7 +196,7 @@ if (-e $blast)
 			while ($db_id =~ /\A\//) { $db_id =~ s/\A\///; }  
 			my $out_str = $config_hash->{blast} . "; blastdbcmd -db $db_id -entry all -dbtype $dbtype -outfmt %t--%l";
 			my $out = `$out_str`;
-			print "$out_str\n";
+			#print "$out_str\n";
 			while ($out =~ /([^\n\r]+)/g)
 			{
 				my $v = $1; $v =~ /(.*)--(.*)/; my @n; $n[0] =$1; $n[1] = $2;  $n[0] =~ /\A(\S+)/; my $id = $1;
@@ -256,7 +263,7 @@ if (-e $blast)
 			}
 			else
 			{
-				print $1, "\n";
+				#print $1, "\n";
 				$v =~ /([^\n\r+]+)/; $rank->[scalar(@$rank)] = $1;
 			}
 		}
@@ -271,7 +278,8 @@ print STDERR "Finished the ranking... $res_dir\n";
 if (-e $res_dir)
 {
 	print STDERR "A\n";
-	my $ls = `ls $res_dir/*_*.*blastx.out`;
+	my $ls1 = "ls $res_dir/$genome_id" . "_v_*.*blastx.out";
+	my $ls = `$ls1`;
 	while ($ls =~ /([^\/]+)_v_([^\.]+)\.([.]*)blastx.out/g)
 	{
 		my $genome_id = $1; my $db_id = $2;
@@ -285,7 +293,8 @@ if (-e $res_dir)
 	{
 		if (length($a) > 0)
 		{
-			my $ls = `ls $res_dir/*_v_$a.*blastx.out`;
+		        my $ls1 = "ls $res_dir/$genome_id" . "_v_$a.*blastx.out";
+			my $ls = `$ls1`;
 			if ($ls !~  q/No such file or directory/)
 			{
 				$ls =~ /([^\n\r]+)/;
@@ -300,7 +309,7 @@ if (-e $res_dir)
 			}
 		}
 	}
-	print STDERR "...Finished Loading.  Starting the analysis...\n";
+	print STDERR "...Finished Loading ", scalar(keys(%$matrix)), " genes.  Starting the analysis...\n";
 	my $cnt2;
 	my $cnt1;
 	my $max_len;
@@ -318,20 +327,25 @@ if (-e $res_dir)
 			my @n_1 = split ";", $all_alleles->{$a};
 			
 			my $bst_c; 	
-			foreach my $c (@n_1)
-			    {
-				if (!$chim->{$a . "_i" . $c})
-				{
-				my $tmp = find_longest_orf($seq{$a . "_i" . $c}, 0, 0);
-				if (!$orf || length($tmp->{s}) > $orf->{s})
-				{
-					$orf = $tmp;
-					$bst_c = $c;
+			foreach my $c (@n_1){
+				if ($seq{$a . "_i" . $c} && !$chim->{$a . "_i" . $c}){
+					my $tmp = find_longest_orf($seq{$a . "_i" . $c}, 0, 0);
+					if (!$orf || length($tmp->{s}) > $orf->{s}){
+						$orf = $tmp;
+						$bst_c = $c;
+					}
+					if ($c > 1000){
+						die($a.  "_i$c");
+					}
 				}
-				if ($c > 1000)
-				{
-					die($a.  "_i$c");
-				}
+				else{
+					if ($seq{$a} && !$chim->{$a}){
+                                       		 my $tmp = find_longest_orf($seq{$a}, 0, 0);
+                                        	if (!$orf || length($tmp->{s}) > $orf->{s}){
+                                                	$orf = $tmp;
+                                                	$bst_c = $c;
+                                     		}
+					}
 				}
 				
 			}
@@ -364,17 +378,18 @@ if (-e $res_dir)
 	foreach my $a (keys(%$matrix))
 	{
 		my $g = $a; if ($a =~ /\A2-(\S+)/) { $g = $1; }
+		my $gn = $g . "_i" . $matrix->{$a}->{id}; if (!$seq{$gn}) { $gn = $g; }
 		if (!($matrix->{$g}->{score} eq "CHIMERA" ||  $matrix->{$g}->{score} eq "RNA"))
 		{
-			if ($matrix->{$g}->{id} && $seq{$g . "_i" . $matrix->{$a}->{id}})
+			if ($matrix->{$g}->{id} && $seq{$gn})
 			{
 				$cnt_m++;
-				my $tmp_orf = find_longest_orf($seq{$g . "_i" . $matrix->{$a}->{id}}, $matrix->{$a}->{start}, $matrix->{$a}->{dir});
+				my $tmp_orf = find_longest_orf($seq{$gn}, $matrix->{$a}->{start}, $matrix->{$a}->{dir});
 				$matrix->{$a}->{seq} = $tmp_orf->{s};
 				$matrix->{$a}->{seq_len} = length($tmp_orf->{s});
 				$matrix->{$a}->{nseq} = $tmp_orf->{n};
 				$matrix->{$a}->{seq_type} = $tmp_orf->{t};
-				$matrix->{$a}->{orig_len} = $map{$g . "_i" . $matrix->{$a}->{id}}->{len};
+				$matrix->{$a}->{orig_len} = $map{$gn}->{len};
 			}
 			else
 			{
@@ -392,9 +407,9 @@ if (-e $res_dir)
                         		my $bst_c;
                         		foreach my $c (@n_1)
                             		{
-                                		if (!$chim->{$a . "_i" . $c})
+                                		if (!$chim->{$gn})
                                 		{
-                               				 my $tmp = find_longest_orf($seq{$a . "_i" . $c}, 0, 0);
+                               				 my $tmp = find_longest_orf($seq{$gn}, 0, 0);
                               				  if (!$orf || length($tmp->{s}) > $orf->{s})
                                				 {
                                         			$orf = $tmp;
@@ -458,17 +473,20 @@ if (-e $res_dir)
 		   if ($matrix->{$a}->{id} && $seq{$g . "_i" . $matrix->{$a}->{id}})
                         {
                                 $cnt_m++;
-                                my $tmp_orf = find_longest_orf($seq{$g . "_i" . $matrix->{$a}->{id}}, $matrix->{$a}->{start}, $matrix->{$a}->{dir});
+				my $gn = $g . "_i" . $matrix->{$a}->{id};
+                                if (!$seq{$gn}) { $gn = $a; }
+                                my $tmp_orf = find_longest_orf($seq{$gn}, $matrix->{$a}->{start}, $matrix->{$a}->{dir});
                                 $matrix->{$a}->{seq} = $tmp_orf->{s};
                                 $matrix->{$a}->{seq_len} = length($tmp_orf->{s});
                                 $matrix->{$a}->{nseq} = $tmp_orf->{n};
                                 $matrix->{$a}->{seq_type} = $tmp_orf->{t};
-                                $matrix->{$a}->{orig_len} = $map{$g . "_i" . $matrix->{$a}->{id}}->{len};
+                                $matrix->{$a}->{orig_len} = $map{$gn}->{len};
                         }
 		}
 	}
 	
 	print STDERR "Printing output files..\n";
+	print STDERR  $out_dir . "/" . $new_genome_id .".prot.fasta\n";
 	open(my $ff, ">", $out_dir . "/" . $new_genome_id .".prot.fasta");
 	open(my $fc, ">", $out_dir . "/" . $new_genome_id. ".cds.fasta");
 	open(my $fn, ">", $out_dir . "/" . $new_genome_id. ".nuc.fasta");
@@ -478,18 +496,22 @@ if (-e $res_dir)
 	open(my $fb, ">", $out_dir . "/" . $new_genome_id. ".bacteria.fasta");
 	    open(my $fm, ">", $out_dir . "/" . $new_genome_id . ".gene_info.txt");
 	print {$fm} "GeneID\tPipelineType\tBestAllele\tBestGenomeDB\tBestMatch\tMatchLength\tGeneCoverage\tEval\tStartPos\tOrigLength\tFrame\tDirection\tPossible_Chimeric\tSecondary_Allele\tBit_Score\tLength of ongest Allele\tLongest Allele\tProtein_Length\n";
-
+	print STDERR "Running through ", scalar(keys(%$matrix)), " genes...\n";
 	    foreach my $a (keys(%$matrix))
 	    {
 		my $g = $a;
+ 		my $gn = $a . "_i" . $matrix->{$a}->{long_allele};
+                if (!$seq{$gn}) { $gn = $a; }
 		if ($a =~ /\A2-(\S+)/) { $g = $1; }#die("$a $g " . $matrix->{$a}->{id}); }
 		    if (!$matrix->{$a}->{id})
 		    {
 			if ($matrix->{$a}->{long_allele})
 			{
-		    		 my $orf = find_longest_orf($seq{$a . "_i" . $matrix->{$a}->{long_allele}}, 0,0);
+		    		#my $gn = $a . "_i" . $matrix->{$a}->{long_allele};
+				#if (!$seq{$gn}) { $gn = $a; }
+				my $orf = find_longest_orf($seq{$gn}, 0,0);
                               	print {$fm} print_no_row($matrix, $a), "\t", length($orf->{s}), "\n";
-				print {$fa} ">$a\n", $seq{$a . "_i" . $matrix->{$a}->{long_allele}}, "\n";
+				print {$fa} ">$a\n", $seq{$gn}, "\n";
 			}
 			else
 			{
@@ -514,21 +536,44 @@ if (-e $res_dir)
 				{
 					print {$ff} ">$a\n", $matrix->{$a}->{seq}, "\n";
 					print {$fc} ">$a\n", $matrix->{$a}->{nseq}, "\n";
-					print {$fa} ">$a\n", $seq{$g . "_i" . $matrix->{$a}->{id}}, "\n";
-					print {$fn} ">$a\n", $seq{$g . "_i" . $matrix->{$a}->{id}}, "\n";
+					print {$fa} ">$a\n", $seq{$gn}, "\n";
+					print {$fn} ">$a\n", $seq{$gn}, "\n";
 				}
 			}
-			else
-			{
-	        	my $orf = find_longest_orf($seq{$g . "_i" . $matrix->{$a}->{id}}, $matrix->{$a}->{start}, $matrix->{$a}->{dir});
-				if ($orig_chim->{$g . "_i" . $matrix->{$a}->{id}})
-                {
-                	$matrix->{$a}->{posschi} = "1";
-                }
-				print {$fm} print_no_row($matrix, $a), "\t", length($orf->{s}), "\n";
-			print {$fa} ">$a\n", $seq{$g . "_i" . $matrix->{$a}->{id}},"\n";
-			}
 		}
+		else
+			{
+                                my $gn = $g . "_i" . $matrix->{$a}->{id};
+                                if (!$seq{$gn}) { $gn = $a; }
+	        		if ($matrix->{$a}->{species} == "BACTERIA")
+                        	{
+                                	print {$fb} ">$a\n",  $matrix->{$a}->{seq}, "\n";
+                        	}	
+                        	if($matrix->{$a}->{score} eq "BEST" || $matrix->{$a}->{score} eq "NOT_BEST" || $matrix->{$a}->{score}){
+                                	if ($orig_chim->{$g . "_i" . $matrix->{$a}->{id}})
+                                	{
+                                	    $matrix->{$a}->{posschi} = 1;
+                                	}
+                                	print {$fm} print_row($matrix, $a), "\t", $matrix->{$a}->{seq_len}, "\n";
+                                	if (!$matrix->{$a}->{species} || $matrix->{$a}->{species} == "EUKARYOTA")
+                                	{
+                                        	print {$ff} ">$a\n", $matrix->{$a}->{seq}, "\n";
+                                        	print {$fc} ">$a\n", $matrix->{$a}->{nseq}, "\n";
+                                        	print {$fa} ">$a\n", $seq{$gn}, "\n";
+                                        	print {$fn} ">$a\n", $seq{$gn}, "\n";
+                                	}
+                        	}
+				else{
+					my $orf = find_longest_orf($seq{$gn}, $matrix->{$a}->{start}, $matrix->{$a}->{dir});
+					if ($orig_chim->{$g . "_i" . $matrix->{$a}->{id}})
+                			{
+                				$matrix->{$a}->{posschi} = "1";
+                			}
+					print {$fm} print_no_row($matrix, $a), "\t", length($orf->{s}), "\n";
+					print {$fa} ">$a\n", $seq{$g . "_i" . $matrix->{$a}->{id}},"\n";
+				}
+			}
+		
 
 	}
 
@@ -635,9 +680,12 @@ sub read_blast_file($$$$$$$)
 			#get the gene name
 			if ($chim->{$n[0]})
 			{
-				$n[0] =~ /(\S+)_i(\d+)\Z/;
-                        	my $gene_id = $1;
-                        	my $allele = $2;
+				my $gene_id = $n[0];
+                                my $allele = 1;
+				if ($n[0] =~ /(\S+)_i(\d+)\Z/){
+                        		$gene_id = $1;
+                        		$allele = $2;
+				}
 				#die("$gene_id " . $chim->{$n[0]}. " " . $matrix->{$gene_id}->{score});
                         	if (!$matrix->{$gene_id}->{score} || $matrix->{$gene_id}->{score} eq "NO_HIT")
 				{
@@ -655,9 +703,12 @@ sub read_blast_file($$$$$$$)
 			{
 				if (!$e_val || $n[10] <= $e_val)
 				{
-					$n[0] =~ /(\S+)_i(\d+)\Z/;
-					my $gene_id = $1;
-					my $allele = $2;
+					
+					my $gene_id = $n[0]; my $allele = 1;
+					if ($n[0] =~ /(\S+)_i(\d+)\Z/){
+						$gene_id = $1;
+						$allele = $2;
+					}
 					if ($best->{$id . "--" . $n[1]}->{score} < $n[11])
 					{
 						if (!$map->{$n[0]}->{len}) {die($n[0]); }
@@ -824,10 +875,11 @@ sub translater($$$$)
 	my $u_frame = $_[1];
 	my $strn = $_[0];
 	my $max = $_[3];
-	if ($u_dir == -1) { $strn = reverse($strn); $strn =~ tr/ATCG/TAGC/; }
 	#else { $strn = substr($strn); }
 	$strn = substr($strn, $u_frame);
-	my $tr = translate_as_string($strn); $tr .= "#"; my $c = 0;
+	my $seq_obj = Bio::Seq->new(-seq => $strn, -alphabet => 'dna'); my $prot_seq = $seq_obj->translate(); my $tr = $prot_seq->seq;
+	#my $tr = translate_as_string($strn); 
+	$tr .= "#"; my $c = 0;
 	while ($tr =~ /([^\*\#]*)([\*\#])/g)
 	{
 		my $s = $1; my $e = $2;

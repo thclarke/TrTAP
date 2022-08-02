@@ -2,13 +2,15 @@
 use Getopt::Long;
 use strict;
 use warnings;
+use File::Basename; 
 
-my ($qsub,$dir, $out, $pattern, $help, $index, $nthreads, $end, $paired, $type, $mem);
+my ($qsub,$dir, $out, $pattern, $help, $index, $nthreads, $time, $end, $paired, $type, $mem);
 $end = ".fq";
 $type = "bowtie2";
 $mem = 20;
 $nthreads = 1;
-GetOptions("q|qsub"=>\$qsub, "m|mem:s" => \$mem, "d|dir:s" =>\$dir, "n|nthread"=>\$nthreads,"o|out:s"=>\$out, "t|type:s"=>\$type, "e|end:s"=>\$end, "i|index:s"=>\$index, "paired|p"=>\$paired, "h|?|help"=>\$help);
+$time = 48;
+GetOptions("r|time:s"=>\$time, "q|qsub"=>\$qsub, "m|mem:s" => \$mem, "d|dir:s" =>\$dir, "n|nthread"=>\$nthreads,"o|out:s"=>\$out, "t|type:s"=>\$type, "e|end:s"=>\$end, "i|index:s"=>\$index, "paired|p"=>\$paired, "h|?|help"=>\$help);
 
 if ($help || !($dir))
 {
@@ -22,6 +24,7 @@ if ($help || !($dir))
     print STDERR " -e end of string\n";
     print STDERR " -n number of threads\n";
     print STDERR " -q runs PBS submissions\n";
+    print STDERR " -r time to request in hours. Default is 48\n";
     print STDERR " -m memory (in g) to request. Default is 20\n";
 	die();
 }
@@ -43,9 +46,10 @@ while (<$conf_file>) { chomp; # no newline
         $config_hash->{$var} = $value;
 }
 
+my $hour = $time;
 my $sh = "#!/bin/bash -l\n\n#SBATCH --nodes=1\n#SBATCH --ntasks=1\n#SBATCH --cpus-per-task=NTHREAD\n";
 $sh .= "#SBATCH --output=run_rsem_OUT.txt\n\n";
-$sh .= "#SBATCH --mem=MEMg\n#SBATCH --time=48:00:00\n#SBATCH --job-name=run_rsem_OUT\n#SBATCH -p intel\n\n";
+$sh .= "#SBATCH --mem=MEMg\n#SBATCH --time=HOUR:00:00\n#SBATCH --job-name=run_rsem_OUT\n#SBATCH -p intel\n\n";
 
 my $cmd_run = "sbatch";
 
@@ -156,6 +160,7 @@ while ($ls =~ /([^\n\r]+)/g)
 		$tmp_sh =~ s/OUT/$out_id1/g;
 		$tmp_sh =~ s/MEM/$mem/g;
 		$tmp_sh =~ s/NTHREAD/$nthreads/g;
+		$tmp_sh =~ s/HOUR/$time/g;
 		print STDERR "$out_id1\n";
 		open(my $fo, ">", "$out\/$out_id1". "_$type.sh");
 		print {$fo} $tmp_sh;

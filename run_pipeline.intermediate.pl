@@ -48,11 +48,23 @@ my $src = dirname($0);
 my $database_id;
 if (-e $res_dir. "/" . $genome_id .".all_nuc.fasta")
 {
+	open(my $f_o, ">", $res_dir. "/" . $genome_id .".all_nuclear.fasta");
+	open(my $f_f, "<", $res_dir. "/" . $genome_id .".all_nuc.fasta");
+	while(my $v = <$f_f>){
+		while($v =~ />(\S+)/){
+			my $id = $1; my $tmp; $v = <$f_f>;
+			while ($v !~ />/ && !eof($f_f)){
+				$v =~ /([^\n\r]+)/; $tmp .= $1; $v = <$f_f>;
+			}
+			if (eof($f_f)) {  $v =~ /([^\n\r]+)/; $tmp .= $1; }
+			if (length($tmp) > 0 && $id ne $tmp) { print {$f_o} ">$id\n$tmp\n"; }
+		}	
+	}
 	$database_id =  $genome_id . "_ALL";
 	my $str = $config_hash->{bowtie} . "\n". $config_hash->{rsem} ."
 	cd $res_dir
-	bowtie-build " . $res_dir. "/" . $genome_id .".all_nuc.fasta ".$res_dir ."/" . $database_id ."
-	rsem-prepare-reference " . $res_dir. "/" . $genome_id .".all_nuc.fasta " . $genome_id . "_ALL";
+	bowtie-build " . $res_dir. "/" . $genome_id .".all_nuclear.fasta ".$res_dir ."/" . $database_id ."
+	rsem-prepare-reference " . $res_dir. "/" . $genome_id .".all_nuclear.fasta " . $genome_id . "_ALL";
 	if (! -e   $res_dir. "/" . $database_id. ".ti")
 	{ print STDERR "Making RSEM Database at " .$res_dir. "/" .$database_id ."\n"; `$str`; }
 	$str = "cd $res_dir\n" . $config_hash->{bowtie2}."\nbowtie2-build " . $res_dir. "/" . $genome_id .".all_nuc.fasta " . $database_id;
@@ -85,11 +97,11 @@ if (!-e $res_dir . "/bowtie")
 }
 my $add;
 if ($qsub) { $add = " -q"; }
-my $str = "cd $res_dir/\nperl $src/run_multiple_readexp.pl -d $read_dir -o $out_dir/rsem -p -i $res_dir/$database_id -t rsem -e $read_end -m $mem" . $add;
+my $str = $config_hash->{perl} . "\ncd $res_dir/\nperl $src/run_multiple_readexp.pl -d $read_dir -o $out_dir/rsem -p -i $res_dir/$database_id -t rsem -e $read_end -m $mem" . $add;
 `$str`;
 if (!$skip_bowtie)
 {
-	$str = "cd $res_dir/\nperl $src/run_multiple_readexp.pl -d $read_dir -o $out_dir/bowtie -p -i $res_dir/$database_id -t bowtie2 -e $read_end -m $mem" . $add;
+	$str = $config_hash->{perl} . "\ncd $res_dir/\nperl $src/run_multiple_readexp.pl -d $read_dir -o $out_dir/bowtie -p -i $res_dir/$database_id -t bowtie2 -e $read_end -m $mem" . $add;
 	`$str`;
 }
 

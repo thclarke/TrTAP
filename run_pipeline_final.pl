@@ -99,7 +99,7 @@ else
 	warn("Cannot find expression files $res_dir/$mat_id" .".rsem_matrix.tpm.txt");
 }
 print STDERR "Getting Blast File Data\n";
-my $ls_sys = "ls $res_dir/$int_id" . "*blast*";
+my $ls_sys = "ls $res_dir/$int_id" . "_v*blast*";
 my $ls = `$ls_sys`;
 while ($ls =~ /([^\n\r]+)/g)
 {
