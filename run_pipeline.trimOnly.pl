@@ -384,7 +384,12 @@ if (-e $res_dir)
 			if ($matrix->{$g}->{id} && $seq{$gn})
 			{
 				$cnt_m++;
-				my $tmp_orf = find_longest_orf($seq{$gn}, $matrix->{$a}->{start}, $matrix->{$a}->{dir});
+				my $s = 0; my $d = 0;
+				if ($matrix->{$a}->{start} && $matrix->{$a}->{match_genome} !~ /Spid/){
+					$s =  $matrix->{$a}->{start}; $d =  $matrix->{$a}->{dir}; 
+				}
+				#if ($matrix->{$a}->{match_genome} =~ /Spid/) { print STDERR "$a $s $d\n"; }
+				my $tmp_orf = find_longest_orf($seq{$gn}, $s, $d);
 				$matrix->{$a}->{seq} = $tmp_orf->{s};
 				$matrix->{$a}->{seq_len} = length($tmp_orf->{s});
 				$matrix->{$a}->{nseq} = $tmp_orf->{n};
@@ -591,7 +596,13 @@ sub make_orfs($$)
 			if ($m->{$a}->{id})
 			{
 				$c++;
-				my $tmp_orf = find_longest_orf($s->{$a . "_i" . $m->{$a}->{id}}, $m->{$a}->{start}, $m->{$a}->{dir});
+				my $s = 0; my $d = 0;
+				if ($m->{$a}->{start} && $m->{$a}->{match_genome} !~ /Spid/){
+					$s = $m->{$a}->{start};
+					$d = $m->{$a}->{dir};
+				}
+				if ($m->{$a}->{match_genome} =~ /Spid/) { print "$a s: $s d: $d\n"; } 
+				my $tmp_orf = find_longest_orf($s->{$a . "_i" . $m->{$a}->{id}}, $s, $d);
 				$m->{$a}->{seq} = $tmp_orf->{s};
 				$m->{$a}->{seq_len} = length($tmp_orf->{s});
 				$m->{$a}->{nseq} = $tmp_orf->{n};
@@ -669,6 +680,9 @@ sub read_blast_file($$$$$$$)
 	my $e_val = $_[5];
 	my $chim = $_[6];
 	my %hits;
+	my $is_nuc;
+	if ($blast_file =~ /tblastx/) { $is_nuc = 1; }
+	my $diff = 1;
 	if (-e $blast_file)
 	{
 		open(my $fo, "<", $blast_file);
@@ -709,6 +723,8 @@ sub read_blast_file($$$$$$$)
 						$gene_id = $1;
 						$allele = $2;
 					}
+					else{
+						$gene_id = $n[0]; $allele= 1; }
 					if ($best->{$id . "--" . $n[1]}->{score} < $n[11])
 					{
 						if (!$map->{$n[0]}->{len}) {die($n[0]); }
@@ -717,12 +733,27 @@ sub read_blast_file($$$$$$$)
 						$best->{$id . "--" . $n[1]}->{allele} = $allele;
 						$best->{$id . "--" . $n[1]}->{match_gene_cov} = abs($n[9]-$n[8]) / $map->{$n[1]}->{len};						
 						$best->{$id . "--" . $n[1]}->{match_self_cov} = abs($n[7]-$n[6]) / $map->{$n[0]}->{len};
-						$best->{$id . "--" . $n[1]}->{start} = (($n[6]-1) % 3)+1;
-						$best->{$id . "--" . $n[1]}->{dir} = 1;
+						my $st = (($n[6]-$diff) % 3)+1;
+						my $dir  = 1;
+						if ($is_nuc) { 
+							my $st1 = (($n[6]-$diff) % 3);
+							if ($n[7] < $n[6]) {
+								$st1 = (($map->{$n[0]}->{len} - $n[6]) % 3);
+								$dir *= -1;
+							}
+							my $st2 = (($n[8]-$diff) % 3);
+							if ($n[9] < $n[8]) {
+                                                                $st2 = (($map->{$n[1]}->{len} - $n[8]) % 3);
+								$dir *= -1;
+                                                        }
+							$st = (3+ ($st1 - $st2))%3 + 1; 
+						} 
+						$best->{$id . "--" . $n[1]}->{start} = $st;
+						$best->{$id . "--" . $n[1]}->{dir} = $dir;
 						$best->{$id . "--" . $n[1]}->{match_len} = $map->{$n[1]}->{len};
 						$best->{$id . "--" . $n[1]}->{e_value} = $n[10];
 						$best->{$id . "--" . $n[1]}->{bit_score} = $n[11];
-						if ($n[7] <  $n[6])
+						if ($n[7] <  $n[6] && !$is_nuc)
 						{
 							$best->{$id . "--" . $n[1]}->{start} = (($map->{$n[0]}->{len} - $n[6]) % 3)+1;
 							$best->{$id . "--" . $n[1]}->{dir} =   -1;
@@ -751,10 +782,23 @@ sub read_blast_file($$$$$$$)
 							$matrix->{$gene_id}->{match_self_cov} = abs($n[7]-$n[6]) / $map->{$n[0]}->{len};
 							$matrix->{$gene_id}->{bit_score} = $n[11];
 							$matrix->{$gene_id}->{e_value} = $n[10];
-							$matrix->{$gene_id}->{start} = 1+(($n[6]-1) % 3);
+							my $st = (($n[6]-$diff) % 3)+1;
+							my $dir = 1;
+                                               		if ($is_nuc) { 
+                                                        	my $st1 = (($n[6]-$diff) % 3);
+                                                        	if ($n[7] < $n[6]) {
+                                                                	$st1 = (($map->{$n[0]}->{len} - $n[6]) % 3); $dir *= -1;
+                                                        	}
+                                                        	my $st2 = (($n[8]-$diff) % 3);
+                                                       		if ($n[9] < $n[8]) {
+                                                                	$st2 = (($map->{$n[1]}->{len} - $n[8]) % 3); $dir *= -1;
+                                                        	}
+                                                        	$st = (3+ ($st1 - $st2))%3 + 1;
+							 }
+                                               		$matrix->{$gene_id}->{start} = $st;
 							$matrix->{$gene_id}->{sec} = 1;
-							$matrix->{$gene_id}->{dir} = 1;
-							if ($n[7] <  $n[6])
+							$matrix->{$gene_id}->{dir} = $dir;
+							if ($n[7] <  $n[6] && !$is_nuc)
 							{
 								$matrix->{$gene_id}->{start} = (($map->{$n[0]}->{len} - $n[6]) % 3)+1;
 								$matrix->{$gene_id}->{dir} =   -1;
@@ -779,10 +823,28 @@ sub read_blast_file($$$$$$$)
 								$matrix->{$gene_id}->{match_self_cov} = abs($n[7]-$n[6]) / $map->{$n[0]}->{len};
 								$matrix->{$gene_id}->{bit_score} = $n[11];
 								$matrix->{$gene_id}->{e_value} = $n[10];
-								$matrix->{$gene_id}->{start} = (($n[6]-1) % 3)+1;
+								my $st = (($n[6]-$diff) % 3)+1;
+								my $dir = 1;
+                                               			if ($is_nuc) {
+                                                        		my $st1 = (($n[6]-$diff) % 3);
+                                                        		if ($n[7] < $n[6]) {
+                                                                		$st1 = (($map->{$n[0]}->{len} - $n[6]) % 3);
+                                                        			$dir *= -1;
+									}
+                                                       			 my $st2 = (($n[8]-$diff) % 3);
+                                                        		if ($n[9] < $n[8]) {
+                                                                		$st2 = (($map->{$n[1]}->{len} - $n[8]) % 3);
+                                                        			$dir *= -1;
+									}
+							
+                                                        		$st = (3+ ($st1 - $st2))%3 + 1; 
+								}
+								if ($is_nuc) { $st = (3+ (($n[6]-$diff) % 3) - (($n[8]-$diff) % 3) %3) + 1; }
+                                               
+								$matrix->{$gene_id}->{start} = $st;
 								$matrix->{$gene_id}->{sec}++;
-								$matrix->{$gene_id}->{dir} = 1;
-								if ($n[7] <  $n[6])
+								$matrix->{$gene_id}->{dir} = $dir;
+								if ($n[7] <  $n[6] && !$is_nuc)
 								{
 									$matrix->{$gene_id}->{start} = (($map->{$n[0]}->{len} - $n[6]) % 3)+1;
 									$matrix->{$gene_id}->{dir} =   -1;
@@ -875,6 +937,7 @@ sub translater($$$$)
 	my $u_frame = $_[1];
 	my $strn = $_[0];
 	my $max = $_[3];
+	if ($u_dir == -1) { $strn = reverse($strn); $strn =~ tr/CGAT/GCTA/; }
 	#else { $strn = substr($strn); }
 	$strn = substr($strn, $u_frame);
 	my $seq_obj = Bio::Seq->new(-seq => $strn, -alphabet => 'dna'); my $prot_seq = $seq_obj->translate(); my $tr = $prot_seq->seq;

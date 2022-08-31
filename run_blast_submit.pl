@@ -22,8 +22,8 @@ sub get_full_dir($){
         return $full_dir. "/";
 }
 
-my ($qsub, $chim, $out_dir, $trinity, $random, $skip_nr, $email, $test, $help, $blast, $fq_dir, $num, $test, $rna, $time); 
-GetOptions("q|qsub"=>\$qsub, "c|chim:s"=>\$chim, "i|id:s"=>\$random, "k|skip"=>\$skip_nr, "e|email:s" =>\$email, "r|rna"=>\$rna, "m|time:s"=>\$time, "x|test" =>\$test, "f|fq:s"=>\$fq_dir, "t|trinity:s"=>\$trinity, "o|out_dir:s"=>\$out_dir, "b|blast_dir:s"=>\$blast, "n|num:s"=>\$num, "h|?|help"=>\$help);
+my ($qsub, $chim, $out_dir, $trinity, $random, $skip_nr, $email, $test, $help, $blast, $fq_dir, $num, $test, $rna, $time, $cpu); 
+GetOptions("q|qsub"=>\$qsub, "c|chim:s"=>\$chim, "i|id:s"=>\$random, "k|skip"=>\$skip_nr, "e|email:s" =>\$email, "p|cpu:s"=>\$cpu, "r|rna"=>\$rna, "m|time:s"=>\$time, "x|test" =>\$test, "f|fq:s"=>\$fq_dir, "t|trinity:s"=>\$trinity, "o|out_dir:s"=>\$out_dir, "b|blast_dir:s"=>\$blast, "n|num:s"=>\$num, "h|?|help"=>\$help);
 
 if ($help || !$trinity)
 {
@@ -42,7 +42,12 @@ if ($help || !$trinity)
     print STDERR " -k skip nr run\n";
     print STDERR " -r also runs rrna and trna searchs\n";
     print STDERR " -m add time to run\n";
+    print SDTERR " -p number of cpus to use per run. Default = 1\n";
     exit();
+}
+
+if (!$cpu){
+	$cpu = 1;
 }
 
 if (!-e $trinity)
@@ -209,7 +214,7 @@ rm RAND_TRNA.NUM.start
 touch RAND_TRNA.NUM.finished
 ";
 
-my @chars = ("A".."Z", "a".."z");my $cpu = 1;
+my @chars = ("A".."Z", "a".."z");#my $cpu = 1;
 if (!$random) { $random = rndStr 4, @chars; }
 if ($chim)
 {
@@ -350,8 +355,7 @@ if ($rna)
 }
 while ($ls_nblast =~ /([^\n\r]+)/g)
 {
-	my $file = $1; $file =~ s/\.nhr//; $file =~ /([^\/]+)\Z/; my $id = $1; my $new = $in; my $cpu = 1;
-	if ($id eq "Avent") { $cpu = 10; }
+	my $file = $1; $file =~ s/\.nhr//; $file =~ /([^\/]+)\Z/; my $id = $1; my $new = $in;
 	my $out2 = $out_dir . "/" . $random . "_" . $id . ".out"; $new =~ s/OUT2/$out2/g;
 	my $file1= $blast . "/" . $id; $new =~ s/CPU/$cpu/; $new =~ s/DB1/$file1/g; $new =~ s/DB/$id/g; $new =~ s/RAND/$random/g;  my $jobname = "$id-$random-RUN";
 	$new =~ s/BLAST/tblastx/; $new =~ s/DIR/$out_dir/g;  $new =~ s/EMAIL/$email/; $new =~ s/JOBNAME/$jobname/;
@@ -393,7 +397,7 @@ while ($ls_pblast =~ /([^\n\r]+)/g)
 	my $file = $1; $file =~ s/\.phr//; $file =~ /([^\/]+)\Z/; my $id = $1; my $cpu2 = $cpu;
 	if ($id eq "Avent") { $cpu2 = 10; }
 	my $new = $in; my $file1= $blast . "/" . $id; print "$file1\n"; $new =~ s/DB1/$file1/g; $new =~ s/DB/$id/g;  $new =~ s/RAND/$random/g;
-	$new =~ s/BLAST/blastx/; $new =~ s/DIR/$out_dir/; $new =~ s/EMAIL/$email/;  $new =~ s/CPU/$cpu2/;
+	$new =~ s/BLAST/blastx/; $new =~ s/DIR/$out_dir/; $new =~ s/EMAIL/$email/;  $new =~ s/CPU/$cpu/;
 my $out2 = $out_dir . "/" . $random . "_" . $id . ".out"; $new =~ s/OUT2/$out2/g;
 	my $jobname = "$id-$random-RUN";
   	$new =~ s/JOBNAME/$jobname/;

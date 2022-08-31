@@ -4,11 +4,12 @@ use Getopt::Long;
 use Cwd;
 use File::Basename;
 
-my ($out_dir, $busco5, $qsub, $trinity, $genome_id, $eval, $skip_bowtie, $b_eval, $start, $test, $help, $all_rsem, $blast, $res_dir,$read_dir, $read_end, $mem);
+my ($out_dir, $busco5, $qsub, $trinity, $genome_id, $eval, $skip_bowtie, $b_eval, $start, $test, $help, $all_rsem, $blast, $res_dir,$read_dir, $read_end, $mem, $cpu);
 $genome_id = "GEN";;
 $eval= 1e-5;
 $mem = 40;
-GetOptions("b|busco5"=>\$busco5, "q|qsub"=>\$qsub, "r|result:s"=>\$res_dir,"x|skip"=>\$skip_bowtie, "m|mem:s"=>\$mem,"e|end:s"=>\$read_end, "g|genome:s"=>\$genome_id,  "t|read_dir:s"=>\$read_dir, "o|out_dir:s"=>\$out_dir, "h|?|help"=>\$help);
+$cpu = 1;
+GetOptions("p|cpu:s"=>\$cpu, "b|busco5"=>\$busco5, "q|qsub"=>\$qsub, "r|result:s"=>\$res_dir,"x|skip"=>\$skip_bowtie, "m|mem:s"=>\$mem,"e|end:s"=>\$read_end, "g|genome:s"=>\$genome_id,  "t|read_dir:s"=>\$read_dir, "o|out_dir:s"=>\$out_dir, "h|?|help"=>\$help);
 
 if ($help || !$read_dir)
 {
@@ -23,6 +24,7 @@ if ($help || !$read_dir)
     print STDERR " -q runs PBS submissions\n";
     print STDERR " -x skip bowtie2 runs\n";
     print STDERR " -b busco is version 5\n";
+    print STDERR " -p number of cpus to use per blast submit. Default is 1\n";
     exit();
 }
 
@@ -84,7 +86,7 @@ else
 	}
 	else
 	{
-		die("Cannot find nucleotide")
+		die("Cannot find all_nuc data")
 	}
 }
 if (!-e $res_dir . "/rsem")
@@ -108,8 +110,8 @@ if (!$skip_bowtie)
 my $out = "#!/bin/bash -l
 
 #SBATCH --nodes=1
-#SBATCH --ntasks=20
-#SBATCH --cpus-per-task=1
+#SBATCH --ntasks=CPU
+#SBATCH --cpus-per-task=CPU
 #SBATCH --output=GEN_v_Swissprot.out
 #SBATCH --mem=1g
 #SBATCH --job-name=JOBNAME
@@ -122,7 +124,7 @@ if ($qsub){
         $cmd_run  = "qsub";
         $out = "#!/bin/bash -l
 
-#PBS -l nodes=20:ppn=CPU
+#PBS -l nodes=1:ppn=CPU
 #PBS -l mem=1gb
 #PBS -o GEN_v_Swissprot.out
 #PBS -e GEN_v_Swissprot.err
@@ -137,7 +139,7 @@ $config_hash->{uniprot} . "
 cd ~/
 blastp -query ".$res_dir. "/" . $genome_id .".prot.fasta -db \$UNIPROT_DB/uniprot_sprot.fasta -out " . $out_dir. "/" . $genome_id . "_v_SwissProt.blastx.txt -max_target_seqs 1 -num_threads 20 -evalue 1e-5 -outfmt 6";
 
-$out =~ s/JOBNAME/swissprot_blast/g; $out =~ s/GEN/$genome_id/g;
+$out =~ s/JOBNAME/swissprot_blast/g; $out =~ s/GEN/$genome_id/g; $out =~ s/CPU/$cpu/g;
 open(my $fo, ">", $out_dir ."/". $genome_id . "_v_swissprot.sh"); print {$fo} $out; close($fo);
 $str = "chmod a+x " . $out_dir ."/". $genome_id . "_v_swissprot.sh\ncd $out_dir\n$cmd_run  ". $out_dir ."/". $genome_id . "_v_swissprot.sh";
 if (!-e  $out_dir. "/" . $genome_id . "_v_SwissProt.blastx.txt")
@@ -149,7 +151,7 @@ $out = "#!/bin/bash -l
 
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=1
+#SBATCH --cpus-per-task=CPU
 #SBATCH --output=run_GEN_Trin_busco2_2.txt
 #SBATCH --mem=20g
 #SBATCH --time=24:00:00
@@ -178,7 +180,7 @@ if (!$busco5){
 else{
 	$out .= "busco -i ". $res_dir. "/" . $genome_id .".prot.fasta -o $genome_id  -l arthropoda_odb10 -m prot -c 1 -f";
 }
-$out =~ s/JOBNAME/busco/g; $out =~ s/GEN/$genome_id/g;
+$out =~ s/JOBNAME/busco/g; $out =~ s/GEN/$genome_id/g; $out =~ s/CPU/$cpu/g;
 if (!-e  $out_dir . "/run_" . $genome_id)
 {
 	open(my $fo, ">", $out_dir ."/". $genome_id . "_v_BUSCO.sh"); print {$fo} $out; close($fo);
@@ -188,7 +190,7 @@ if (!-e  $out_dir . "/run_" . $genome_id)
 $out = "#!/bin/bash -l
 
 #SBATCH --nodes=1
-#SBATCH --ntasks=1
+#SBATCH --ntasks=CPU
 #SBATCH --cpus-per-task=1
 #SBATCH --output=GEN_v_HMM.out
 #SBATCH --mem=1g
@@ -212,7 +214,7 @@ $config_hash->{pfam} . "
 
 cd $out_dir
 hmmscan --noali --tblout $genome_id.hmm.txt -E 1e-5 \$PFAM_DB/Pfam-A.hmm $res_dir"."/"."$genome_id.prot.fasta";
-$out =~ s/JOBNAME/busco/g; $out =~ s/GEN/$genome_id/g;
+$out =~ s/JOBNAME/busco/g; $out =~ s/GEN/$genome_id/g; $out =~ s/CPU/$cpu/g;
 
 if (!-e  $out_dir . "/$genome_id.hmm.txt")
 {
