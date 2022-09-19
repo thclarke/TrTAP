@@ -99,7 +99,7 @@ Submits blast runs to SLURM job submissions
  -k skip nr run
  -r also runs rrna and trna searches
  -m add time to run
-
+ -p number of cpus to use per run. Default = 1
 ```
 
 ### run_pipeline.trimOnly.pl
@@ -133,6 +133,8 @@ Runs Annotation and Translation on a Trimmed Sample
  -g genome id. Default = GEN
  -m memory for the run. Default = 40g
  -x skip bowtie2 runs
+ -p number of cpus to use per run. Default = 1
+
 ```
 
 
@@ -150,4 +152,6 @@ Runs Post-Redundancy Removal Trimming and Annotation on a Trinity Sample
  -c gene coverage cutoff for good. Default = 0.2
  -m expression matrix ID. Default = intermediate ID.
  -e expression cutoff for good. Default = 1 FPKM
+ -p number of cpus to use per run. Default = 1
+
 ```
