@@ -128,7 +128,7 @@ then
 	rm RAND_DB.sub
 fi
 touch RAND_DB.NUM.start
-BLAST -query TRINITY -db DB1 -out OUT1 -num_threads 1 -evalue 1e-5 -max_target_seqs 1 -outfmt 6
+BLAST -query TRINITY -db DB1 -out OUT1 -num_threads $cpu -evalue 1e-5 -max_target_seqs 1 -outfmt 6
 rm RAND_DB.NUM.start
 touch RAND_DB.NUM.finished
 ";
@@ -157,7 +157,7 @@ $config_hash->{diamond} . "\n
 
 cd DIR
 touch RAND_NR.start
-diamond blastx --query TRINITY --db \$DIAMOND_DB/nr --threads 1 --out NR_v_RAND.txt --threads 1 --evalue 1e-5 --max-target-seqs 1  --outfmt 6
+diamond blastx --query TRINITY --db \$DIAMOND_DB/nr --threads $cpu --out NR_v_RAND.txt --threads 1 --evalue 1e-5 --max-target-seqs 1  --outfmt 6
 rm RAND_NR.start
 touch RAND_NR.finished
 ";
@@ -175,7 +175,7 @@ then
 	rm RAND_CHIMERA.sub
 fi
 touch RAND_CHIMERA.NUM.start
-BLAST -query TRINITY -db DB1 -out OUT1 -num_threads 1 -evalue 1e-5 -outfmt 6
+BLAST -query TRINITY -db DB1 -out OUT1 -num_threads $cpu -evalue 1e-5 -outfmt 6
 rm RAND_CHIMERA.NUM.start
 if [  -e OUT1 ]
 then
@@ -199,7 +199,7 @@ then
         rm RAND_RRNA.sub
 fi
 touch RAND_RRNA.NUM.start
-blastn -max_target_seqs 1 -query TRINITY -db \$RRNADB -out OUT1 -num_threads 1 -evalue 1e-5 -outfmt 6
+blastn -max_target_seqs 1 -query TRINITY -db \$RRNADB -out OUT1 -num_threads $cpu -evalue 1e-5 -outfmt 6
 rm RAND_RRNA.NUM.start
 touch RAND_RRNA.NUM.finished
 ";

@@ -137,7 +137,7 @@ $config_hash->{blast} . "\n" .
 $config_hash->{uniprot} . "
 
 cd ~/
-blastp -query ".$res_dir. "/" . $genome_id .".prot.fasta -db \$UNIPROT_DB/uniprot_sprot.fasta -out " . $out_dir. "/" . $genome_id . "_v_SwissProt.blastx.txt -max_target_seqs 1 -num_threads 20 -evalue 1e-5 -outfmt 6";
+blastp -query ".$res_dir. "/" . $genome_id .".prot.fasta -db \$UNIPROT_DB/uniprot_sprot.fasta -out " . $out_dir. "/" . $genome_id . "_v_SwissProt.blastx.txt -max_target_seqs 1 -num_threads $cpu -evalue 1e-5 -outfmt 6";
 
 $out =~ s/JOBNAME/swissprot_blast/g; $out =~ s/GEN/$genome_id/g; $out =~ s/CPU/$cpu/g;
 open(my $fo, ">", $out_dir ."/". $genome_id . "_v_swissprot.sh"); print {$fo} $out; close($fo);
