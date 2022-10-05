@@ -123,11 +123,11 @@ if ($time && $qsub) { $st .= "#PBS -l walltime=". $time . "\n"; }
 my $in = $st . "\n" . $config_hash->{blast} ."
 
 cd DIR
-if [  -e RAND_DB.sub ]
+if [  -e RAND_DBID.sub ]
 then
-	rm RAND_DB.sub
+	rm RAND_DBID.sub
 fi
-touch RAND_DB.NUM.start
+touch RAND_DBID.NUM.start
 BLAST -query TRINITY -db DB1 -out OUT1 -num_threads $cpu -evalue 1e-5 -max_target_seqs 1 -outfmt 6
 rm RAND_DB.NUM.start
 touch RAND_DB.NUM.finished
@@ -357,7 +357,7 @@ while ($ls_nblast =~ /([^\n\r]+)/g)
 {
 	my $file = $1; $file =~ s/\.nhr//; $file =~ /([^\/]+)\Z/; my $id = $1; my $new = $in;
 	my $out2 = $out_dir . "/" . $random . "_" . $id . ".out"; $new =~ s/OUT2/$out2/g;
-	my $file1= $blast . "/" . $id; $new =~ s/CPU/$cpu/; $new =~ s/DB1/$file1/g; $new =~ s/DB/$id/g; $new =~ s/RAND/$random/g;  my $jobname = "$id-$random-RUN";
+	my $file1= $blast . "/" . $id; $new =~ s/CPU/$cpu/; $new =~ s/DB1/$file1/g; $new =~ s/DBID/$id/g; $new =~ s/RAND/$random/g;  my $jobname = "$id-$random-RUN";
 	$new =~ s/BLAST/tblastx/; $new =~ s/DIR/$out_dir/g;  $new =~ s/EMAIL/$email/; $new =~ s/JOBNAME/$jobname/;
 	if (!$num)
 	{
@@ -396,7 +396,7 @@ while ($ls_pblast =~ /([^\n\r]+)/g)
 {
 	my $file = $1; $file =~ s/\.phr//; $file =~ /([^\/]+)\Z/; my $id = $1; my $cpu2 = $cpu;
 	if ($id eq "Avent") { $cpu2 = 10; }
-	my $new = $in; my $file1= $blast . "/" . $id; print "$file1\n"; $new =~ s/DB1/$file1/g; $new =~ s/DB/$id/g;  $new =~ s/RAND/$random/g;
+	my $new = $in; my $file1= $blast . "/" . $id; print "$file1\n"; $new =~ s/DB1/$file1/g; $new =~ s/DBID/$id/g;  $new =~ s/RAND/$random/g;
 	$new =~ s/BLAST/blastx/; $new =~ s/DIR/$out_dir/; $new =~ s/EMAIL/$email/;  $new =~ s/CPU/$cpu/;
 my $out2 = $out_dir . "/" . $random . "_" . $id . ".out"; $new =~ s/OUT2/$out2/g;
 	my $jobname = "$id-$random-RUN";
