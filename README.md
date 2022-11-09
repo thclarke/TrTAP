@@ -103,7 +103,7 @@ Submits blast runs to SLURM job submissions
 ```
 
 ### run_pipeline.trimOnly.pl
-Once the SLURM runs from run_blast_submit.pl are finished, the "best" contig of the assembly is selected using the blast results, using the ranked databases from the ranking.txt file. Additionally when available, Chimeric and RNA sequences are removed from the intermediate results. The intermediate peptide, coding, and nucleotide files as well as an information table is returned with the ID addition of _INT_TRIM added to the genome id.
+Once the SLURM runs from run_blast_submit.pl are finished, the "best" contig of the assembly is selected using the blast results, using the ranked databases from the ranking.txt file (if a phylogeny is in the ranking file, then BioPerl is required to read the tree in the file). Additionally when available, Chimeric and RNA sequences are removed from the intermediate results. The intermediate peptide, coding, and nucleotide files as well as an information table is returned with the ID addition of _INT_TRIM added to the genome id.
 ```
 Runs Annotation and Translation on a Trinity Sample
 
