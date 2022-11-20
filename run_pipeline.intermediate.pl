@@ -45,7 +45,7 @@ while (<$conf_file>) { chomp; # no newline
 	$config_hash->{$var} = $value; 
 }
 
-my $src = dirname($0);
+my $src = Cwd::abs_path(__FILE__);
 #Make Databases
 my $database_id;
 if (-e $res_dir. "/" . $genome_id .".all_nuc.fasta")
