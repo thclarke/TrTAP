@@ -54,10 +54,11 @@ These scripts take an assembly, preferrably created via Trinity, and through the
 The following is a description of running the pipeline in TrTAP_SCRIPT_DIR on TRINITY_ASSEMBLY created from the read files in READ_DIR that end in READ_END. The blast databases are found in BLAST_DB. The files are written in RESULT_DIR with the header of GENOME_ID.
 ```
 cd TrTAP_SCRIPT_DIR
-perl run_blast_submit.pl -t ASSEMBLY -b BLAST_DIR -o RESULT_DIR -r -f READ_DIR -i GENOME_ID -c Fly -k [-q]
-perl run_pipeline.trimOnly.pl -t ASSEMBLY -b BLAST_DIR -r RESULT_DIR -c Avant -o RESULT_DIR -g GENOME_ID -x GENOME_ID_CHIMERA.40.txt
-perl run_pipeline.intermediate.pl -t READ_DIR -e READ_END -r RESULT_DIR -o RESULT_DIR -x -g GENOME_ID
-perl run_pipeline_final.pl -b BLAST_DIR -r RESULT_DIR -g GENOME_ID_NEW -i GENOME_ID -m GENOME_ID_INT_ALL > RESULT_DIR/GENOME_ID_FIN_TRIM.gene_info.out
+perl ./run_blast_submit.pl -t ASSEMBLY -b BLAST_DIR -o RESULT_DIR -r -f READ_DIR -i GENOME_ID -c Fly -k [-q]
+perl ./run_pipeline.trimOnly.pl -t ASSEMBLY -b BLAST_DIR -r RESULT_DIR -c Avant -o RESULT_DIR -g GENOME_ID -x GENOME_ID_CHIMERA.40.txt
+perl ./run_pipeline.intermediate.pl -t READ_DIR -e READ_END -r RESULT_DIR -o RESULT_DIR -x -g GENOME_ID
+perl ./make_rsem_matrix.pl -d RESULT_DIR/rsem/ -o GENOME_ID_INT_ALL.rsem_matrix.tpm.txt -c 5 -e GENOME_ID_ALL
+perl ./run_pipeline_final.pl -b BLAST_DIR -r RESULT_DIR -g GENOME_ID_NEW -i GENOME_ID -m GENOME_ID_INT_ALL > RESULT_DIR/GENOME_ID_FIN_TRIM.gene_info.out
 ```
 
 ### Initialization
@@ -135,6 +136,18 @@ Runs Annotation and Translation on a Trimmed Sample
  -x skip bowtie2 runs
  -p number of cpus to use per run. Default = 1
 
+```
+
+### make_rsem_matrix.pl
+Makes a matrix with the RSEM output in the directory given by user, and makes an output file with the matrix. The full output file (including the path) should be given. Column 5 is the TPM, and Column 6 is the FPKM. The end is the RSEM reference used to make the libraries.
+```
+Make RSEM Matrix
+-----------------USAGE--------------
+ -d directory with rsem results 
+ -o output file
+ -c column in rsem file to use
+ -e end rsem file to use
+ -a addition to the start of the file. Removed for output column name
 ```
 
 
