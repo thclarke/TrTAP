@@ -221,7 +221,7 @@ if (-e "$res_dir/".$genome_id. "_v_SwissProt.blastx.txt")
 {
 	my %sw_tmp;
 	my %sw_tax;
-	open(my $f_sw, "<", "$blast/uniprot_sprot.ids") or die();
+	open(my $f_sw, "<", "$blast/uniprot_sprot.ids");
 	while(my $v = <$f_sw>)
 	{
 		$v =~ /([^\r\n]+)/; my @n = split "\t", $1;
