@@ -42,6 +42,19 @@ The current setup here is designed for Aranchnids but blast databases from other
  | Neph | Nephila clavipes proteins |
  | SILVA_132.AllrRNA.fasta | SILVA Arthropod 18S rRNA file |
  
+ - Supplimentary Files
+   - Additionally, TrTAP uses several additional files to help give further information about the PFAM and SwissProt matches to give additional data. If these files, are not in the blast db, the final program still runs but the final gene info file will be emptier
+       - SwissProt
+         - uniprot_sprot.ids
+         - uniprot_sprot.dat
+         - taxonomy.xml
+       - PFAM
+         - pfamA.txt
+         - PFAM_gene_ontology.txt
+       - Drosophila
+         - fbgn_fbtr_fbpp_fb_2019_06.tsv
+         - gene_association.fb
+         - automated_gene_summaries.tsv
  - ranking file
    - *contains the ranking of how TrTAP scripts treat the blast results from the databases above*
    - It is possible to include a species phylogeny in a line to permit dynamic ranking (trigged by -c in the run_pipeline.trimOnly.pl script)
