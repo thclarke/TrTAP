@@ -239,7 +239,7 @@ if ($chim)
 		my $file1= $blast . "/" . $id; $new =~ s/DB1/$file1/g; $new =~ s/RAND/$random/g;  my $jobname = "CHIMERA-$random-RUN";
 		if ($type eq "p") { $new =~ s/BLAST/blastx/; $b_type = "blastx"; }
 		if ($type eq "n") { $new =~ s/BLAST/tblastx/; $b_type = "tblastx";}
-		my $abs = dirname($0);
+		my $abs = Cwd::abs_path(__FILE__);
 		$new =~ s/CURRDIR/$abs/g;
 		my $email_rep = "";
 		if ($email) { "#SBATCH --mail-user=$email\n#SBATCH --mail-type=ALL"; }
