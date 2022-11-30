@@ -46,15 +46,23 @@ The current setup here is designed for Aranchnids but blast databases from other
    - Additionally, TrTAP uses several additional files to help give further information about the PFAM and SwissProt matches to give additional data. If these files, are not in the blast db, the final program still runs but the final gene info file will be emptier
        - SwissProt
          - uniprot_sprot.ids
+         gzipped version is in the git repository. It should be ungzipped to be used.
          - uniprot_sprot.dat
+         can get at https://ftp.uniprot.org/pub/databases/uniprot/knowledgebase/complete/uniprot_sprot.dat.gz
          - taxonomy.xml
+         
        - PFAM
          - pfamA.txt
+         gzipped version van be found at http://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/database_files/pfamA.txt.gz
          - PFAM_gene_ontology.txt
-       - Drosophila
+         gzipped and partially named is found at http://ftp.ebi.ac.uk/pub/databases/Pfam/current_release/database_files/gene_ontology.txt.gz. This should be downloaded, ungzipped, and renamed to PFAM_gene_ontology.txt
+       - Drosophila (pulled from 2019_06 release.)
          - fbgn_fbtr_fbpp_fb_2019_06.tsv
+         available at http://ftp.flybase.net/releases/FB2019_06/precomputed_files/genes/fbgn_fbtr_fbpp_fb_2019_06.tsv.gz. Needs to be unzipped
          - gene_association.fb
+         available at http://ftp.flybase.net/releases/FB2019_06/precomputed_files/go/gene_association.fb.gz. Needs to be unzipped
          - automated_gene_summaries.tsv
+         available at http://ftp.flybase.net/releases/FB2019_06/precomputed_files/genes/automated_gene_summaries.tsv.gz. Needs to be unzipped
  - ranking file
    - *contains the ranking of how TrTAP scripts treat the blast results from the databases above*
    - It is possible to include a species phylogeny in a line to permit dynamic ranking (trigged by -c in the run_pipeline.trimOnly.pl script)
