@@ -1,11 +1,12 @@
 #! /usr/bin/env python
-# Susan Corbett - Spring 2012
+# Susan Corbett - Spring 2012 and transformed by Thomas Clarke in 20222
 # This script will read the given .csv file, looking for query results with multiple hits. 
 # It reports to the .txt file any that do not overlap by more than the specified number of bases.
 # Parameters:
 #      -csvIn   InputCSVFilename       (required)
 #      -txtOut  OutputTXTFilename      (default is MultHits.txt)
 #      -overlap NumBasesOverlap        (default is 10)
+#      -evalue	Evaluecutoff	       (default is none)
 
 
 import re
@@ -189,11 +190,10 @@ def AnalyzeMultiHits(InCSVFile, OutTXTFile, NumBasesOverlap, eValcutoff):
     if float(BRLine[10]) <= eValcutoff:
        WriteToReport(Report,"QuerySeqID is %s\n"%(QuerySeqID),Rpt.DEBUG_ONLY)
        WriteToReport(Report,"SubjectSeqID is %s\n"%(SubjectSeqID),Rpt.DEBUG_ONLY)
-	
        if QuerySeqID != PrevQuerySeqID:
-    	  if NumQueryHits > 1:
+          if NumQueryHits > 1:
             CoalesceSubjectSeqLengths(HitLocations,Report)
-            if (len(HitLocations) > 1):
+	    if (len(HitLocations) > 1):
               WriteToReport(Report,"\nCalling CalcMinOverlap() - NumQueryHits=%d\n"%(NumQueryHits),Rpt.DEBUG_ONLY)
               MinOverlap = CalcMinOverlap(HitLocations,Report)
               WriteToReport(Report,"NumQueryHits=%d\n"%(NumQueryHits),Rpt.DEBUG_ONLY)
