@@ -127,10 +127,10 @@ if [  -e __RAND_____DBID__.sub ]
 then
 	rm __RAND_____DBID__.sub
 fi
-touch __RAND_____DBID__.NUM.start
+touch __RAND_____DBID__.__NUM__.start
 __BLAST__ -query __TRINITY__ -db __DB1__ -out __OUT1__ -num_threads $cpu -evalue 1e-5 -max_target_seqs 1 -outfmt 6
-rm __RAND_____DBID__.NUM.start
-touch __RAND_____DBID__.NUM.finished
+rm __RAND_____DBID__.__NUM__.start
+touch __RAND_____DBID__.__NUM__.finished
 ";
 
 my $in2 = $st . "\n" . 
