@@ -97,10 +97,10 @@ my $st = "#!/bin/bash -l
 
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=CPU
-#SBATCH --output=OUT2.out
-EMAIL#SBATCH --mem=10g
-#SBATCH --job-name=JOBNAME
+#SBATCH --cpus-per-task=__CPU__
+#SBATCH --output=__OUT2__.out
+__EMAIL__#SBATCH --mem=10g
+#SBATCH --job-name=__JOBNAME__
 #SBATCH -p intel
 ";
 if ($qsub){
@@ -108,13 +108,13 @@ if ($qsub){
 	$cmd_multi = "qsub -J 1-$num";
 	$st = "#!/bin/bash -l
 
-#PBS -l nodes=1:ppn=CPU
+#PBS -l nodes=1:ppn=__CPU__
 #PBS -l mem=10gb
-#PBS -o OUT2.out
-#PBS -e OUT2.err
-#PBS -M EMAIL
+#PBS -o __OUT2__.out
+#PBS -e __OUT2__.err
+#PBS -M __EMAIL__
 #PBS -m abe
-#PBS -N JOBNAME
+#PBS -N __JOBNAME__
 ";
 
 }
@@ -122,44 +122,44 @@ if ($time && !$qsub) { $st .= "#SBATCH --time=". $time . "\n"; }
 if ($time && $qsub) { $st .= "#PBS -l walltime=". $time . "\n"; }
 my $in = $st . "\n" . $config_hash->{blast} ."
 
-cd DIR
-if [  -e RAND_DBID.sub ]
+cd __DIR__
+if [  -e __RAND___DBID.sub ]
 then
-	rm RAND_DBID.sub
+	rm __RAND___DBID.sub
 fi
-touch RAND_DBID.NUM.start
-BLAST -query TRINITY -db DB1 -out OUT1 -num_threads $cpu -evalue 1e-5 -max_target_seqs 1 -outfmt 6
-rm RAND_DB.NUM.start
-touch RAND_DB.NUM.finished
+touch __RAND___DBID.NUM.start
+__BLAST__ -query __TRINITY__ -db __DB1__ -out __OUT1__ -num_threads $cpu -evalue 1e-5 -max_target_seqs 1 -outfmt 6
+rm __RAND___DBID.NUM.start
+touch __RAND___DBID.NUM.finished
 ";
 
 my $in2 = $st . "\n" . 
 $config_hash->{rsem} . "\n" .
 $config_hash->{bowtie} . "\n
-cd DIR
+cd __DIR__
 
-touch RAND_ID.rsemstart
-rsem-calculate-expression --paired-end ID1 ID2 DB1 OUT1
-rm RAND_ID.rsemstart
-if [ -e OUT1.genes.results ]
+touch __RAND___ID.rsemstart
+rsem-calculate-expression --paired-end __ID1__ __ID2__ __DB1__ __OUT1__
+rm __RAND___ID.rsemstart
+if [ -e __OUT1__.genes.results ]
 then
 
-	touch RAND_ID.rsemdone
-	rm OUT1.transcript.bam
-	touch RAND_ID.rsemclean
+	touch __RAND___ID.rsemdone
+	rm __OUT1__.transcript.bam
+	touch __RAND___ID.rsemclean
 else
-	touch RAND_ID.error
+	touch __RAND___ID.error
 fi
 ";
 
 my $in3 = $st . "\n" .
 $config_hash->{diamond} . "\n
 
-cd DIR
-touch RAND_NR.start
-diamond blastx --query TRINITY --db \$DIAMOND_DB/nr --threads $cpu --out NR_v_RAND.txt --threads 1 --evalue 1e-5 --max-target-seqs 1  --outfmt 6
-rm RAND_NR.start
-touch RAND_NR.finished
+cd __DIR__
+touch __RAND___NR.start__
+diamond blastx --query __TRINITY__ --db \$DIAMOND_DB/nr --threads $cpu --out NR_v___RAND__.txt --threads 1 --evalue 1e-5 --max-target-seqs 1  --outfmt 6
+rm __RAND___NR.start
+touch __RAND___NR.finished
 ";
 
 my $in_chim = $st . 
@@ -169,23 +169,23 @@ $config_hash->{blast}
 $config_hash->{python2}
 . "
 
-cd DIR
-if [  -e RAND_CHIMERA.sub ]
+cd __DIR__
+if [  -e __RAND___CHIMERA.sub ]
 then
-	rm RAND_CHIMERA.sub
+	rm __RAND___CHIMERA.sub
 fi
-touch RAND_CHIMERA.NUM.start
-BLAST -query TRINITY -db DB1 -out OUT1 -num_threads $cpu -evalue 1e-5 -outfmt 6
-rm RAND_CHIMERA.NUM.start
+touch __RAND___CHIMERA.__NUM__.start
+__BLAST__ -query __TRINITY__ -db __DB1__ -out __OUT1__ -num_threads $cpu -evalue 1e-5 -outfmt 6
+rm __RAND___CHIMERA.__NUM__.start
 if [  -e OUT1 ]
 then
-	touch RAND_CHIMERA_PY.start
-	python2 CURRDIR/src/AnalyzeMultiHits.py -csvIn OUT1 -txtOut OUT2 -overlap 40
-	rm RAND_CHIMERA_PY.start
-	touch RAND_CHIMERA_PY.finished
+	touch __RAND___CHIMERA_PY.start
+	python2 CURRDIR/src/AnalyzeMultiHits.py -csvIn OUT1 -txtOut __OUT2__ -overlap 40
+	rm __RAND___CHIMERA_PY.start
+	touch __RAND___CHIMERA_PY.finished
 fi
 
-touch CHIMERA.NUM.finished
+touch CHIMERA.__NUM__.finished
 ";
 
 
@@ -194,24 +194,24 @@ my $in_rrna = $st . $config_hash->{blast}
 ". $config_hash->{rrna} .
 "
 cd DIR
-if [  -e RAND_RRNA.sub ]
+if [  -e __RAND___RRNA.sub ]
 then
-        rm RAND_RRNA.sub
+        rm __RAND___RRNA.sub
 fi
-touch RAND_RRNA.NUM.start
-blastn -max_target_seqs 1 -query TRINITY -db \$RRNADB -out OUT1 -num_threads $cpu -evalue 1e-5 -outfmt 6
-rm RAND_RRNA.NUM.start
-touch RAND_RRNA.NUM.finished
+touch __RAND___RRNA.__NUM__.start
+blastn -max_target_seqs 1 -query __TRINITY__ -db \$RRNADB -out __OUT1__ -num_threads $cpu -evalue 1e-5 -outfmt 6
+rm __RAND___RRNA.__NUM__.start
+touch __RAND___RRNA.__NUM__.finished
 ";
 
 my $in_trna = $st . $config_hash->{tRNAscan} 
 . "
 
 cd DIR
-touch RAND_TRNA.NUM.start
-tRNAscan-SE -G -o OUT1 TRINITY
-rm RAND_TRNA.NUM.start
-touch RAND_TRNA.NUM.finished
+touch RAND_TRNA.__NUM__.start
+tRNAscan-SE -G -o __OUT1__ __TRINITY__
+rm RAND_TRNA.__NUM__.start
+touch RAND_TRNA.__NUM__.finished
 ";
 
 my @chars = ("A".."Z", "a".."z");#my $cpu = 1;
@@ -235,29 +235,29 @@ if ($chim)
 		$file =~ s/\.([np])hr//; $file =~ /([^\/]+)\Z/; my $id = $1; my $new = $in_chim;
 		my $out2 = $out_dir . "/" . $random . "_CHIMERA.out"; $new =~ s/OUT2/$out2/g;
 		my $out3 = $out_dir . "/" . $random . "_CHIMERA.out"; $new =~ s/OUT2/$out2/g;
-		 $new =~ s/CPU/$cpu/;
-		my $file1= $blast . "/" . $id; $new =~ s/DB1/$file1/g; $new =~ s/RAND/$random/g;  my $jobname = "CHIMERA-$random-RUN";
-		if ($type eq "p") { $new =~ s/BLAST/blastx/; $b_type = "blastx"; }
-		if ($type eq "n") { $new =~ s/BLAST/tblastx/; $b_type = "tblastx";}
+		 $new =~ s/__CPU__/$cpu/;
+		my $file1= $blast . "/" . $id; $new =~ s/__DB1__/$file1/g; $new =~ s/RAND/$random/g;  my $jobname = "CHIMERA-$random-RUN";
+		if ($type eq "p") { $new =~ s/__BLAST__/blastx/; $b_type = "blastx"; }
+		if ($type eq "n") { $new =~ s/__BLAST__/tblastx/; $b_type = "tblastx";}
 		my $abs = Cwd::abs_path(__FILE__);
 		$new =~ s/CURRDIR/$abs/g;
 		my $email_rep = "";
 		if ($email) { "#SBATCH --mail-user=$email\n#SBATCH --mail-type=ALL"; }
-		$new =~ s/DIR/$out_dir/g;  $new =~ s/EMAIL/$email_rep/; $new =~ s/JOBNAME/$jobname/;
+		$new =~ s/__DIR__/$out_dir/g;  $new =~ s/__EMAIL__/$email_rep/; $new =~ s/__JOBNAME__/$jobname/;
 		if (!$num)
 		{
 			my $out_id = $out_dir ."/" . $random . "_v_CHIMERA.$b_type.out";
-			$new =~ s/OUT1/$out_id/g;
-			$new =~ s/TRINITY/$trinity/g;
-			$new =~ s/NUM\.//g;
+			$new =~ s/__OUT1__/$out_id/g;
+			$new =~ s/__TRINITY__/$trinity/g;
+			$new =~ s/__NUM__\.//g;
 		}
 		else
 		{
 			my $out_id = $out_dir ."/" . $random . "_v_CHIMERA.$b_type.\$SLURM_ARRAY_TASK_ID.out";
-			$new =~ s/OUT1/$out_id/;
+			$new =~ s/__OUT1/__$out_id/;
 			my $tmp_trinity = $trinity  . ".\$SLURM_ARRAY_TASK_ID";
-			$new =~ s/TRINITY/$tmp_trinity/g;
-			$new =~ s/NUM/\$SLURM_ARRAY_TASK_ID/g; 
+			$new =~ s/__TRINITY__/$tmp_trinity/g;
+			$new =~ s/__NUM__/\$SLURM_ARRAY_TASK_ID/g; 
 	}
 	if (!-e $out_dir . "/" . $random . "_CHIMERA.start" && !-e $out_dir . "/" . $random . "_CHIMERA.finished")
 	{  
@@ -284,22 +284,22 @@ if ($rna)
 {
      	my $new = $in_rrna;
      	my $out2 = $out_dir . "/" . $random . "_RRNA.out"; $new =~ s/OUT2/$out2/g;
-	$new =~ s/RAND/$random/g;  my $jobname = "RRNA-$random-RUN";
-     	$new =~ s/DIR/$out_dir/g;   $new =~ s/CPU/$cpu/; $new =~ s/EMAIL/$email/; $new =~ s/JOBNAME/$jobname/;
+	$new =~ s/__RAND__/$random/g;  my $jobname = "RRNA-$random-RUN";
+     	$new =~ s/__DIR__/$out_dir/g;   $new =~ s/__CPU__/$cpu/; $new =~ s/__EMAIL__/$email/; $new =~ s/__JOBNAME__/$jobname/;
         if (!$num)
 	{
       		my $out_id = $out_dir ."/" . $random . "_v_RRNA.out";
-                $new =~ s/OUT1/$out_id/g;
-                $new =~ s/TRINITY/$trinity/g;
-                $new =~ s/NUM\.//g;
+                $new =~ s/__OUT1__/$out_id/g;
+                $new =~ s/__TRINITY__/$trinity/g;
+                $new =~ s/__NUM__\.//g;
         }
         else
        {
         	my $out_id = $out_dir ."/" . $random . "_v_RRNA.\$SLURM_ARRAY_TASK_ID.out";
-                $new =~ s/OUT1/$out_id/;
+                $new =~ s/__OUT1__/$out_id/;
                         my $tmp_trinity = $trinity  . ".\$SLURM_ARRAY_TASK_ID";
-                        $new =~ s/TRINITY/$tmp_trinity/g;
-                        $new =~ s/NUM/\$SLURM_ARRAY_TASK_ID/g;
+                        $new =~ s/__TRINITY__/$tmp_trinity/g;
+                        $new =~ s/__NUM__/\$SLURM_ARRAY_TASK_ID/g;
         }
         if (!-e $out_dir . "/" . $random . "_RRNA.start" && !-e $out_dir . "/" . $random . "_RRNA.finished")
         {
@@ -318,23 +318,23 @@ if ($rna)
                 }
         }
  	my $new = $in_trna;
-        my $out2 = $out_dir . "/" . $random . "_TRNA.out"; $new =~ s/OUT2/$out2/g;
-        $new =~ s/RAND/$random/g;  my $jobname = "TRNA-$random-RUN";
-        $new =~ s/DIR/$out_dir/g;  $new =~ s/EMAIL/$email/;  $new =~ s/CPU/$cpu/; $new =~ s/JOBNAME/$jobname/;
+        my $out2 = $out_dir . "/" . $random . "_TRNA.out"; $new =~ s/__OUT2__/$out2/g;
+        $new =~ s/__RAND__/$random/g;  my $jobname = "TRNA-$random-RUN";
+        $new =~ s/__DIR__/$out_dir/g;  $new =~ s/__EMAIL__/$email/;  $new =~ s/__CPU__/$cpu/; $new =~ s/__JOBNAME__/$jobname/;
         if (!$num)
         {
                 my $out_id = $out_dir ."/" . $random . "_v_TRNA.out";
-                $new =~ s/OUT1/$out_id/g;
-                $new =~ s/TRINITY/$trinity/g;
-                $new =~ s/NUM\.//g;
+                $new =~ s/__OUT1__/$out_id/g;
+                $new =~ s/__TRINITY__/$trinity/g;
+                $new =~ s/__NUM__\.//g;
         }
         else
        {
                 my $out_id = $out_dir ."/" . $random . "_v_TRNA.\$SLURM_ARRAY_TASK_ID.out";
-                $new =~ s/OUT1/$out_id/;
+                $new =~ s/__OUT1__/$out_id/;
                         my $tmp_trinity = $trinity  . ".\$SLURM_ARRAY_TASK_ID";
-                        $new =~ s/TRINITY/$tmp_trinity/g;
-                        $new =~ s/NUM/\$SLURM_ARRAY_TASK_ID/g;
+                        $new =~ s/__TRINITY__/$tmp_trinity/g;
+                        $new =~ s/__NUM__/\$SLURM_ARRAY_TASK_ID/g;
         }
         if (!-e $out_dir . "/" . $random . "_TRNA.start" && !-e $out_dir . "/" . $random . "_TRNA.finished")
         {
@@ -356,23 +356,23 @@ if ($rna)
 while ($ls_nblast =~ /([^\n\r]+)/g)
 {
 	my $file = $1; $file =~ s/\.nhr//; $file =~ /([^\/]+)\Z/; my $id = $1; my $new = $in;
-	my $out2 = $out_dir . "/" . $random . "_" . $id . ".out"; $new =~ s/OUT2/$out2/g;
-	my $file1= $blast . "/" . $id; $new =~ s/CPU/$cpu/; $new =~ s/DB1/$file1/g; $new =~ s/DBID/$id/g; $new =~ s/RAND/$random/g;  my $jobname = "$id-$random-RUN";
-	$new =~ s/BLAST/tblastx/; $new =~ s/DIR/$out_dir/g;  $new =~ s/EMAIL/$email/; $new =~ s/JOBNAME/$jobname/;
+	my $out2 = $out_dir . "/" . $random . "_" . $id . ".out"; $new =~ s/__OUT2__/$out2/g;
+	my $file1= $blast . "/" . $id; $new =~ s/__CPU__/$cpu/; $new =~ s/__DB1__/$file1/g; $new =~ s/__DBID__/$id/g; $new =~ s/__RAND__/$random/g;  my $jobname = "$id-$random-RUN";
+	$new =~ s/__BLAST__/tblastx/; $new =~ s/__DIR__/$out_dir/g;  $new =~ s/__EMAIL__/$email/; $new =~ s/__JOBNAME__/$jobname/;
 	if (!$num)
 	{
 		my $out_id = $out_dir ."/" . $random . "_v_" . $id . ".tblastx.out";
-		$new =~ s/OUT1/$out_id/;
-		$new =~ s/TRINITY/$trinity/g;
-		$new =~ s/NUM\.//g;
+		$new =~ s/__OUT1__/$out_id/;
+		$new =~ s/__TRINITY__/$trinity/g;
+		$new =~ s/__NUM__\.//g;
 	}
 	else
 	{
 		my $out_id = $out_dir ."/" . $random . "_v_" . $id . ".tblastx.\$SLURM_ARRAY_TASK_ID.out";
-		$new =~ s/OUT1/$out_id/;
+		$new =~ s/__OUT1__/$out_id/;
 		my $tmp_trinity = $trinity  . ".\$SLURM_ARRAY_TASK_ID";
-		$new =~ s/TRINITY/$tmp_trinity/g;
-		$new =~ s/NUM/\$SLURM_ARRAY_TASK_ID/g; 
+		$new =~ s/__TRINITY__/$tmp_trinity/g;
+		$new =~ s/__NUM__/\$SLURM_ARRAY_TASK_ID/g; 
 	}
 	if (!-e $out_dir . "/" . $random . "_" . $id . ".start" && !-e $out_dir . "/" . $random . "_" . $id . ".finished")
 	{  
@@ -396,25 +396,25 @@ while ($ls_pblast =~ /([^\n\r]+)/g)
 {
 	my $file = $1; $file =~ s/\.phr//; $file =~ /([^\/]+)\Z/; my $id = $1; my $cpu2 = $cpu;
 	if ($id eq "Avent") { $cpu2 = 10; }
-	my $new = $in; my $file1= $blast . "/" . $id; print "$file1\n"; $new =~ s/DB1/$file1/g; $new =~ s/DBID/$id/g;  $new =~ s/RAND/$random/g;
-	$new =~ s/BLAST/blastx/; $new =~ s/DIR/$out_dir/; $new =~ s/EMAIL/$email/;  $new =~ s/CPU/$cpu/;
+	my $new = $in; my $file1= $blast . "/" . $id; print "$file1\n"; $new =~ s/__DB1__/$file1/g; $new =~ s/__DBID__/$id/g;  $new =~ s/__RAND__/$random/g;
+	$new =~ s/__BLAST__/blastx/; $new =~ s/__DIR__/$out_dir/; $new =~ s/__EMAIL__/$email/;  $new =~ s/__CPU__/$cpu/;
 my $out2 = $out_dir . "/" . $random . "_" . $id . ".out"; $new =~ s/OUT2/$out2/g;
 	my $jobname = "$id-$random-RUN";
-  	$new =~ s/JOBNAME/$jobname/;
+  	$new =~ s/__JOBNAME__/$jobname/;
 	if (!$num)
 	{
 		my $out_id = $out_dir ."/" . $random . "_v_" . $id . ".blastx.out";
-		$new =~ s/OUT1/$out_id/;
-		$new =~ s/TRINITY/$trinity/g;
-		$new =~ s/NUM\.//g;
+		$new =~ s/__OUT1__/$out_id/;
+		$new =~ s/__TRINITY__/$trinity/g;
+		$new =~ s/__NUM__\.//g;
 	}
 	else
 	{
 		my $out_id = $out_dir ."/" . $random . "_v_" . $id . ".tblastx.\$SLURM_ARRAY_TASK_ID.out";
-		$new =~ s/OUT1/$out_id/;
+		$new =~ s/__OUT1__/$out_id/;
 		my $tmp_trinity = $trinity  . ".\$SLURM_ARRAY_TASK_ID";
-		$new =~ s/TRINITY/$tmp_trinity/g;
- 		$new =~ s/NUM/\$SLURM_ARRAY_TASK_ID/g; 
+		$new =~ s/__TRINITY__/$tmp_trinity/g;
+ 		$new =~ s/__NUM__/\$SLURM_ARRAY_TASK_ID/g; 
 	}
         if (!-e $out_dir . "/" . $random . "_" . $id . ".start" && !-e $out_dir . "/" . $random . "_" . $id. ".finished")
 	{
@@ -438,20 +438,20 @@ if (!$skip_nr)
 my $new = $in3;
 my $id = "NR";
 my $jobname = "$id-$random-RUN";
-$new =~ s/JOBNAME/$jobname/;
-$new =~ s/RAND/$random/g;
-$new =~ s/DIR/$out_dir/g;  $new =~ s/EMAIL/$email/; $new =~ s/CPU/$cpu/;
-my $out2 = $out_dir . "/" . $random . "_" . $id . ".out"; $new =~ s/OUT2/$out2/g;
+$new =~ s/__JOBNAME__/$jobname/;
+$new =~ s/__RAND__/$random/g;
+$new =~ s/__DIR__/$out_dir/g;  $new =~ s/__EMAIL__/$email/; $new =~ s/__CPU__/$cpu/;
+my $out2 = $out_dir . "/" . $random . "_" . $id . ".out"; $new =~ s/__OUT2__/$out2/g;
 if (!$num)
 {
-        $new =~ s/TRINITY/$trinity/g;
- 	$new =~ s/NUM//g;
+        $new =~ s/__TRINITY__/$trinity/g;
+ 	$new =~ s/__NUM__\.//g;
 }
 else
 {
 	my $tmp_trinity = $trinity  . ".\$SLURM_ARRAY_TASK_ID";
-        $new =~ s/TRINITY/$tmp_trinity/g;
-	$new =~ s/NUM/\$SLURM_ARRAY_TASK_ID/g;
+        $new =~ s/__TRINITY__/$tmp_trinity/g;
+	$new =~ s/__NUM__/\$SLURM_ARRAY_TASK_ID/g;
 }
 if (!-e $out_dir . "/" . $random . "_" . $id . ".start" && !-e $out_dir . "/" . $random . "_" . $id . ".finished")
 {
@@ -500,15 +500,15 @@ if ($fq_dir)
 			{
 				my $new = $in2;
 				my $jobname = "$id-$random-RUN";
-				$new =~ s/JOBNAME/$jobname/;
-				$new =~ s/RAND/$random/g; $new =~ s/CPU/$cpu/;
-				$new =~ s/DIR/$out_dir/g;  $new =~ s/EMAIL/$email/;
+				$new =~ s/__JOBNAME__/$jobname/;
+				$new =~ s/__RAND__/$random/g; $new =~ s/__CPU__/$cpu/;
+				$new =~ s/__DIR__/$out_dir/g;  $new =~ s/__EMAIL__/$email/;
 				my $out1 = "$out_dir/$random" . "_$id" . "_rsem";
 				my $id1 = "$fq_dir/$fq";
 				my $id2 = "$fq_dir/$id" . "2.$end";
 				my $db = "$out_dir/$random";
-				my $out2 = $out_dir . "/" . $random . "_" . $id . ".out"; $new =~ s/OUT2/$out2/g;
-				$new =~ s/OUT1/$out1/g; $new =~ s/ID1/$id1/g; $new =~ s/ID2/$id2/g; $new =~ s/DB1/$db/g; $new =~ s/ID/$id/g;
+				my $out2 = $out_dir . "/" . $random . "_" . $id . ".out"; $new =~ s/__OUT2__/$out2/g;
+				$new =~ s/__OUT1__/$out1/g; $new =~ s/__ID1__/$id1/g; $new =~ s/__ID2__/$id2/g; $new =~ s/__DB1__/$db/g; $new =~ s/__ID__/$id/g;
 				if (!-e $out_dir . "/" . $random . "_" . $id . ".rsemstart" && !-e $out_dir . "/" . $random . "_" . $id . ".rsemdone")
 				{
         				open(my $fo, ">", $out_dir . "/" .$random . "_v_" . $id. ".sh");
