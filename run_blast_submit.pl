@@ -123,14 +123,14 @@ if ($time && $qsub) { $st .= "#PBS -l walltime=". $time . "\n"; }
 my $in = $st . "\n" . $config_hash->{blast} ."
 
 cd __DIR__
-if [  -e __RAND___DBID.sub ]
+if [  -e __RAND_____DBID__.sub ]
 then
-	rm __RAND___DBID.sub
+	rm __RAND_____DBID__.sub
 fi
-touch __RAND___DBID.NUM.start
+touch __RAND_____DBID__.NUM.start
 __BLAST__ -query __TRINITY__ -db __DB1__ -out __OUT1__ -num_threads $cpu -evalue 1e-5 -max_target_seqs 1 -outfmt 6
-rm __RAND___DBID.NUM.start
-touch __RAND___DBID.NUM.finished
+rm __RAND_____DBID__.NUM.start
+touch __RAND_____DBID__.NUM.finished
 ";
 
 my $in2 = $st . "\n" . 
