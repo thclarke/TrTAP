@@ -83,7 +83,8 @@ foreach my $b (@f)
         }
     }
 }
-open(my $fo, ">", $out);
+my $fo = *STDOUT;
+if ($out) { open($fo, ">", $out); }
 print {$fo} "Name";
 for (my $i = 0; $i < scalar(@$lst); $i++)
 {
